@@ -2,27 +2,82 @@
 
 #include <iostream>
 #include <memory>
+#include "iterator.hpp"
 
 namespace ft
 {
+	template <class T>
+	class vec_iterator: public ft::iterator_traits<T>
+	{
+	public:
+		using typename ft::iterator_traits<T>::difference_type;
+		using typename ft::iterator_traits<T>::value_type;
+		using typename ft::iterator_traits<T>::pointer;
+		using typename ft::iterator_traits<T>::const_pointer;
+		using typename ft::iterator_traits<T>::reference;
+		using typename ft::iterator_traits<T>::const_reference;
+
+	public:
+		vec_iterator() {
+			this->_p = NULL;
+		}
+		vec_iterator(pointer p) {
+			this->_p = p;
+		}
+		vec_iterator(const vec_iterator &src) {
+			this->_p = src._p;
+		}
+		virtual ~vec_iterator();
+
+		vec_iterator &operator=(const vec_iterator &rhs) {
+			this->_p = rhs._p;
+			return *this;
+		}
+		reference operator*() {
+			return *(this->_p);
+		}
+		const_reference operator*() const {
+			return *(this->_p);
+		}
+		pointer operator->() {
+			return this->_p;
+		}
+		const_pointer operator->() const {
+			return this->_p;
+		}
+		reference operator[](size_t n) {
+			return *(this->_p + n);
+		}
+		const_reference operator[](size_t n) const {
+			return *(this->_p + n);
+		}
+	};
+
 	template <class T, class Allocator = std::allocator<T> >
 	class vector
 	{
 	public:
+		// TODO: Iterator 구현해야함!
 		typedef T											value_type;
 		typedef Allocator									allocator_type;
 		typedef typename allocator_type::reference			reference;
 		typedef typename allocator_type::const_reference	const_reference;
 		typedef typename allocator_type::pointer			pointer;
 		typedef typename allocator_type::const_pointer		const_pointer;
-		// TODO: Iterator 구현해야함!
-		typedef implementation-defined						iterator;
-		typedef implementation-defined						const_iterator;
-		typedef std::reverse_iterator<iterator>				reverse_iterator;
-		typedef std::reverse_iterator<const_iterator>		const_reverse_iterator;
+		typedef ft::vec_iterator<T>							iterator;
+		typedef ft::vec_iterator<const T>					const_iterator;
+		typedef ft::r_iterator<T, iterator>					reverse_iterator;
+		typedef ft::r_iterator<const T, const_iterator>		const_reverse_iterator;
 		typedef typename allocator_type::difference_type	difference_type;
 		typedef typename allocator_type::size_type			size_type;
 
+	private:
+		pointer			_container;
+		size_type		_container_size;
+		size_type		_container_length;
+		allocator_type	_allocator;
+
+	public:
 		// (constructor)
 		explicit vector(const allocator_type &alloc = allocator_type());
 		explicit vector(size_type n, const value_type &val = value_type(), const allocator_type &alloc = allocator_type());
