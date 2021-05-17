@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <iostream>
 #include <memory>
 #include "iterator.hpp"
@@ -25,17 +26,40 @@ namespace ft
 
 	private:
 		pointer			_container;
-		size_type		_container_size;
-		size_type		_container_length;
+		size_type		_container_size; // 들어있는 데이터 갯수
+		size_type		_container_length; // allocator 총 사이즈
 		allocator_type	_allocator;
 
 	public:
 		// (constructor)
-		explicit vector(const allocator_type &alloc = allocator_type());
-		explicit vector(size_type n, const value_type &val = value_type(), const allocator_type &alloc = allocator_type());
+		explicit vector(const allocator_type &alloc = allocator_type()):
+			_container(NULL),
+			_container_size(0),
+			_container_length(0),
+			_allocator(alloc)
+		{
+		}
+		explicit vector(size_type n, const value_type &val = value_type(), const allocator_type &alloc = allocator_type()):
+			_container(NULL),
+			_container_size(0),
+			_container_length(0),
+			_allocator(alloc)
+		{
+			this->assign(n, val);
+		}
 		template <class InputIterator>
-			vector(InputIterator first, InputIterator last, const allocator_type &alloc = allocator_type());
-		vector(const vector& x);
+		vector(InputIterator first, InputIterator last, const allocator_type &alloc = allocator_type()):
+			_container(NULL),
+			_container_size(0),
+			_container_length(0),
+			_allocator(alloc)
+		{
+			this->assign(first, last);
+		}
+		vector(const vector& x)
+		{
+
+		}
 
 		// (destructor)
 		~vector();
@@ -60,7 +84,21 @@ namespace ft
 		void		resize(size_type n, value_type val = value_type());
 		size_type	capacity() const;
 		bool		empty() const;
-		void		reserve(size_type n);
+		void		reserve(size_type n)
+		{
+			if (n <= this->_container_length)
+				return;
+			n = (n > this->_container_length * 2 ? n : this->_container_length * 2);
+			value_type *tmp = static_cast<value_type*>(::operator new(sizeof(value_type) * n));
+			if (this->_container)
+			{
+				for (size_t i = 0; i < this->_container_length; ++i)
+					new(&tmp[i]) value_type(this->_container[i]);
+				::operator delete(this->_container);
+			}
+			this->_container = tmp;
+			this->_container_length = n;
+		}
 
 		// Element Access
 		reference		operator[](size_type n);
@@ -75,7 +113,10 @@ namespace ft
 		// Modifiers
 		template <class InputIterator>
 			void		assign(InputIterator first, InputIterator last);
-		void			assign(size_type n, const value_type& u);
+		void			assign(size_type n, const value_type& u)
+		{
+
+		}
 		void			push_back(const value_type &val);
 		void			pop_back();
 		iterator		insert(iterator position, const value_type &val);
