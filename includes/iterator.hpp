@@ -30,15 +30,23 @@ namespace ft
 			Iterator result(*this);
 			return (*(--result));
 		}
-		r_iterator &operator++() {
+		r_iterator operator++(int) { // 후위
 			r_iterator result(*this);
-			this->Iterator::operator--();
+			--(this->_p);
 			return (result);
 		}
-		r_iterator &operator--() {
+		r_iterator &operator++() { // 전위
+			--(this->_p);
+			return (this);
+		}
+		r_iterator operator--(int) { // 후위
 			r_iterator result(*this);
-			this->Iterator::operator++();
+			++(this->_p);
 			return (result);
+		}
+		r_iterator &operator--() { // 전위
+			++(this->_p);
+			return (this);
 		}
 		pointer operator->() {
 			Iterator result(*this);
@@ -61,7 +69,7 @@ namespace ft
 		typedef T&				reference;
 		typedef const T&		const_reference;
 	
-	private:
+	protected:
 		pointer	_p;
 
 	public:
@@ -73,16 +81,18 @@ namespace ft
 			this->_p = rhs._p;
 			return *this;
 		}
-		virtual ~vec_iterator();
+		virtual ~vec_iterator()
+		{
+		}
 
 		// Can be incremented
-		vec_iterator operator++(int) {
+		vec_iterator operator++(int) { // 후위
 			vec_iterator result(*this);
-			++(this->p);
+			++(this->_p);
 			return (result);
 		}
-		vec_iterator &operator++() {
-			++(this->p);
+		vec_iterator &operator++() { // 전위
+			++(this->_p);
 			return (**this);
 		}
 
@@ -116,12 +126,12 @@ namespace ft
 		// Can be decremented
 		vec_iterator operator--(int) {
 			vec_iterator result(*this);
-			--(this->p);
+			--(this->_p);
 			return (result);
 		}
 		vec_iterator &operator--() {
-			--(this->p);
-			return (**this);
+			--(this->_p);
+			return (*this);
 		}
 
 		// Supports arithmetic operators + and -
