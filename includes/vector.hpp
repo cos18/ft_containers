@@ -4,6 +4,7 @@
 #include <iostream>
 #include <memory>
 #include "iterator.hpp"
+#include "util.hpp"
 
 namespace ft
 {
@@ -38,6 +39,7 @@ namespace ft
 			_container_length(0),
 			_allocator(alloc)
 		{
+			this->_container = this->_allocator.allocate(0);
 		}
 		explicit vector(size_type n, const value_type &val = value_type(), const allocator_type &alloc = allocator_type()):
 			_container(NULL),
@@ -45,14 +47,18 @@ namespace ft
 			_container_length(0),
 			_allocator(alloc)
 		{
+			this->_container = this->_allocator.allocate(0);
 			this->assign(n, val);
 		}
-		vector(iterator first, iterator last, const allocator_type &alloc = allocator_type()):
+		template	<class InputIterator,
+					 typename ft::disable_if<ft::is_integral<InputIterator>::value>::type>
+		vector(InputIterator first, InputIterator last, const allocator_type &alloc = allocator_type()):
 			_container(NULL),
 			_container_size(0),
 			_container_length(0),
 			_allocator(alloc)
 		{
+			this->_container = this->_allocator.allocate(0);
 			this->assign(first, last);
 		}
 		vector(const vector& x);
@@ -60,9 +66,7 @@ namespace ft
 		// (destructor)
 		virtual ~vector()
 		{
-			this->clear();
-			if (this->_container)
-				::operator delete(this->_container);
+			this->_allocator.deallocate(this->_container, this->_container_length);
 		}
 
 		// operator=
@@ -119,16 +123,11 @@ namespace ft
 		{
 			if (n <= this->_container_length)
 				return;
-			n = (n > this->_container_length * 2 ? n : this->_container_length * 2);
-			n = (n > 128 ? n : 128);
-			value_type *tmp = static_cast<value_type*>(::operator new(sizeof(value_type) * n));
-			if (this->_container)
-			{
-				for (size_t index = 0; index < this->_container_size; ++index)
-					new(&(tmp[index])) value_type(this->_container[index]);
-				::operator delete(this->_container);
-			}
-			this->_container = tmp;
+			pointer tmp_container = this->_allocator.allocate(n);
+			for (size_type index = 0; index < this->_container_size; index++)
+				tmp_container[index] = this->_container[index];
+			this->_allocator.deallocate(this->_container, this->_container_length);
+			this->_container = tmp_container;
 			this->_container_length = n;
 		}
 
@@ -149,7 +148,9 @@ namespace ft
 		const_reference	back() const;
 
 		// Modifiers
-		void		assign(iterator first, iterator last)
+		template	<class InputIterator,
+					 typename ft::disable_if<ft::is_integral<InputIterator>::value>::type>
+		void		assign(InputIterator first, InputIterator last)
 		{
 			size_t n = last - first;
 			this->assign(n, *first);
@@ -159,14 +160,7 @@ namespace ft
 			if (this->_container_length < n)
 				this->reserve(n);
 			for (size_t index = 0; index < n; index++)
-			{
-				if (index < this->_container_size)
-					this->_container[index] = u;
-				else
-					new(&(this->_container[index])) value_type(u);
-			}
-			for (size_t index = n; index < this->_container_size; index++)
-				this->_container[index].value_type::~value_type();
+				this->_container[index] = u;
 			this->_container_size = n;
 		}
 		void		push_back(const value_type &val);
@@ -180,8 +174,6 @@ namespace ft
 		void		swap(vector &x);
 		void		clear()
 		{
-			for (size_t index = 1; index < this->_container_size; index++)
-				this->_container[index].value_type::~value_type();
 			this->_container_size = 0;
 		}
 	};
