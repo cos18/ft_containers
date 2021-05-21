@@ -1,5 +1,6 @@
 #include "vector.hpp"
 #include <iostream>
+#include <vector>
 
 void vector_basic_test(ft::vector<int> &test)
 {
@@ -9,20 +10,22 @@ void vector_basic_test(ft::vector<int> &test)
 	ft::vec_iterator<int> ite = test.end();
 	for (ft::vec_iterator<int> it = test.begin(); it != ite; it++)
 		std::cout << *it << std::endl;
-	test[3] = 1;
-	test[5] = 3;
-	std::cout << "[reverse value]" << std::endl;
-	ft::r_iterator< ft::vec_iterator<int> > rite = test.rend();
-	for (ft::r_iterator< ft::vec_iterator<int> > rit = test.rbegin(); rit != rite; rit++)
-		std::cout << *rit << std::endl;
+	test[1] = 1;
+	test[3] = 3;
+	test.insert(test.begin(), 100);
+	test.insert(test.begin() + 2, 3, 5);
+	std::cout << "[rvalue]" << std::endl;
+	ft::vector<int>::const_reverse_iterator cite = test.rend();
+	for (ft::vector<int>::const_reverse_iterator cit = test.rbegin(); cit != cite; cit++)
+		std::cout << *cit << std::endl;
 }
 
 int main()
 {
-	ft::vector<int> int_vector(10);
+	ft::vector<int> int_vector(5);
 	vector_basic_test(int_vector);
 
-	ft::vector<int> int_vector_val_ten(10, 20);
+	ft::vector<int> int_vector_val_ten(5, 10);
 	vector_basic_test(int_vector_val_ten);
 
 	return 0;

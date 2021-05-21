@@ -8,56 +8,6 @@ namespace ft
 	{
 	};
 
-	template <class Iterator = ft::iterator_traits>
-	class r_iterator: public Iterator
-	{
-	public:
-		using typename Iterator::difference_type;
-		using typename Iterator::value_type;
-		using typename Iterator::pointer;
-		using typename Iterator::const_pointer;
-		using typename Iterator::reference;
-		using typename Iterator::const_reference;
-
-		r_iterator(): Iterator() {}
-		r_iterator(const Iterator &src): Iterator(src) {}
-		r_iterator(const r_iterator &src): Iterator(src._p) {}
-		r_iterator &operator=(const r_iterator &rhs) {
-			this->_p = rhs._p;
-			return *this;
-		}
-		reference operator*() {
-			Iterator result(*this);
-			return (*(--result));
-		}
-		r_iterator operator++(int) { // 후위
-			r_iterator result(*this);
-			--(this->_p);
-			return (result);
-		}
-		r_iterator &operator++() { // 전위
-			--(this->_p);
-			return (this);
-		}
-		r_iterator operator--(int) { // 후위
-			r_iterator result(*this);
-			++(this->_p);
-			return (result);
-		}
-		r_iterator &operator--() { // 전위
-			++(this->_p);
-			return (this);
-		}
-		pointer operator->() {
-			Iterator result(*this);
-			return (&*(--result));
-		}
-		const_pointer operator->() const {
-			Iterator result(*this);
-			return (&*(--result));
-		}
-	};
-
 	template <class T>
 	class vec_iterator: public ft::iterator_traits
 	{
@@ -185,5 +135,70 @@ namespace ft
 		vec_iterator(pointer p) {
 			this->_p = p;
 		}
+		pointer getP() const {
+			return this->_p;
+		}
+		template<typename cT>
+		vec_iterator(vec_iterator<cT> const &const_src): _p((cT*)const_src.getP()) {}
 	};
+
+	template <class T>
+	class vec_rev_iterator: public vec_iterator<T>
+	{
+	public:
+		using typename vec_iterator<T>::difference_type;
+		using typename vec_iterator<T>::value_type;
+		using typename vec_iterator<T>::pointer;
+		using typename vec_iterator<T>::const_pointer;
+		using typename vec_iterator<T>::reference;
+		using typename vec_iterator<T>::const_reference;
+
+		vec_rev_iterator(): vec_iterator<T>() {}
+		vec_rev_iterator(const vec_iterator<T> &src): vec_iterator<T>(src) {}
+		vec_rev_iterator(const vec_rev_iterator &src): vec_iterator<T>(src._p) {}
+		vec_rev_iterator &operator=(const vec_rev_iterator &rhs) {
+			this->_p = rhs._p;
+			return *this;
+		}
+		reference operator*() {
+			vec_iterator<T> result(*this);
+			return (*(--result));
+		}
+		vec_rev_iterator operator++(int) { // 후위
+			vec_rev_iterator result(*this);
+			--(this->_p);
+			return (result);
+		}
+		vec_rev_iterator &operator++() { // 전위
+			--(this->_p);
+			return (this);
+		}
+		vec_rev_iterator operator--(int) { // 후위
+			vec_rev_iterator result(*this);
+			++(this->_p);
+			return (result);
+		}
+		vec_rev_iterator &operator--() { // 전위
+			++(this->_p);
+			return (this);
+		}
+		pointer operator->() {
+			vec_iterator<T> result(*this);
+			return (&*(--result));
+		}
+		const_pointer operator->() const {
+			vec_iterator<T> result(*this);
+			return (&*(--result));
+		}
+
+/*
+		pointer getP() const {
+			return this->_p;
+		}
+		template<typename cT>
+		vec_iterator(vec_rev_iterator<cT> const &const_src): _p((cT*)vec_rev_iterator.getP()) {}
+		*/
+	};
+
+	
 }

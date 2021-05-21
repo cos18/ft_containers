@@ -1,6 +1,5 @@
 #pragma once
 
-#include <vector>
 #include <iostream>
 #include <memory>
 #include "iterator.hpp"
@@ -20,8 +19,8 @@ namespace ft
 		typedef typename allocator_type::const_pointer		const_pointer;
 		typedef ft::vec_iterator<T>							iterator;
 		typedef ft::vec_iterator<const T>					const_iterator;
-		typedef ft::r_iterator<iterator>					reverse_iterator;
-		typedef ft::r_iterator<const_iterator>				const_reverse_iterator;
+		typedef ft::vec_rev_iterator<T>						reverse_iterator;
+		typedef ft::vec_rev_iterator<T>						const_reverse_iterator;
 		typedef typename allocator_type::difference_type	difference_type;
 		typedef typename allocator_type::size_type			size_type;
 
@@ -61,7 +60,15 @@ namespace ft
 			this->_container = this->_allocator.allocate(0);
 			this->assign(first, last);
 		}
-		vector(const vector& x);
+		vector(const vector& x):
+			_container(NULL),
+			_container_size(0),
+			_container_length(0),
+			_allocator(allocator_type())
+		{
+			this->_container = this->_allocator.allocate(0);
+			*this = x;
+		}
 
 		// (destructor)
 		virtual ~vector()
@@ -70,7 +77,11 @@ namespace ft
 		}
 
 		// operator=
-		vector& operator=(const vector& x);
+		vector& operator=(const vector& x)
+		{
+			this->assign(x.begin(), x.end());
+			return (*this);
+		}
 
 		// Iterators
 		iterator				begin()
@@ -112,17 +123,30 @@ namespace ft
 		{
 			return this->_container_size;
 		}
-		size_type	max_size() const;
-		void		resize(size_type n, value_type val = value_type());
+		size_type	max_size() const
+		{
+			return (std::numeric_limits<size_type>::max() / sizeof(value_type));
+		};
+		void		resize(size_type n, value_type val = value_type())
+		{
+			this->reserve(n);
+			for (size_type index = this->_container_size; index < n; index++)
+				this->_container[index] = val;
+			this->_container_size = n;
+		}
 		size_type	capacity() const
 		{
 			return this->_container_length;
 		}
-		bool		empty() const;
+		bool		empty() const
+		{
+			return (this->_container_size == 0);
+		}
 		void		reserve(size_type n)
 		{
 			if (n <= this->_container_length)
 				return;
+			n = (this->_container_length * 2 > n ? this->_container_length * 2 : n);
 			pointer tmp_container = this->_allocator.allocate(n);
 			for (size_type index = 0; index < this->_container_size; index++)
 				tmp_container[index] = this->_container[index];
@@ -134,18 +158,40 @@ namespace ft
 		// Element Access
 		reference		operator[](size_type n)
 		{
-			return (this->_container[n]);
+			return this->_container[n];
 		}
 		const_reference	operator[](size_type n) const
 		{
-			return (this->_container[n]);
+			return this->_container[n];
 		}
-		reference		at(size_type n);
-		const_reference	at(size_type n) const;
-		reference		front();
-		const_reference	front() const;
-		reference		back();
-		const_reference	back() const;
+		reference		at(size_type n)
+		{
+			if (n >= this->_container_size)
+				throw std::out_of_range("out of range");
+			return this->_container[n];
+		}
+		const_reference	at(size_type n) const
+		{
+			if (n >= this->_container_size)
+				throw std::out_of_range("out of range");
+			return this->_container[n];
+		}
+		reference		front()
+		{
+			return this->_container[0];
+		}
+		const_reference	front() const
+		{
+			return this->_container[0];
+		}
+		reference		back()
+		{
+			return this->_container[this->_container_size - 1];
+		}
+		const_reference	back() const
+		{
+			return this->_container[this->_container_size - 1];
+		}
 
 		// Modifiers
 		template	<class InputIterator,
@@ -163,15 +209,88 @@ namespace ft
 				this->_container[index] = u;
 			this->_container_size = n;
 		}
-		void		push_back(const value_type &val);
-		void		pop_back();
-		iterator	insert(iterator position, const value_type &val);
-		iterator	insert(iterator position, size_type n, const value_type &val);
-		template <class InputIterator>
-		iterator	insert(iterator position, InputIterator first, InputIterator last);
-		iterator	erase(iterator position);
-		iterator	erase(iterator first, iterator last);
-		void		swap(vector &x);
+		void		push_back(const value_type &val)
+		{
+			this->reserve(this->_container_size + 1);
+			this->_container[this->_container_size] = val;
+			(this->_container_size)++;
+		}
+		void		pop_back()
+		{
+			(this->_container_size)--;
+		}
+		iterator	insert(iterator position, const value_type &val)
+		{
+			size_type target_index = 0;
+			while (iterator(this->_container + target_index) != position && target_index < this->_container_size)
+				target_index++;
+			this->reserve(this->_container_size + 1);
+			size_type data_index = this->_container_size;
+			while (data_index > target_index)
+			{
+				this->_container[data_index] = this->_container[data_index - 1];
+				data_index--;
+			}
+			this->_container[target_index] = val;
+			(this->_container_size)++;
+			return iterator(this->_container + target_index);
+		}
+		void		insert(iterator position, size_type n, const value_type &val)
+		{
+			size_type target_index = 0;
+			while (iterator(this->_container + target_index) != position && target_index < this->_container_size)
+				target_index++;
+			this->reserve(this->_container_size + n);
+			size_type data_index = this->_container_size + n - 1;
+			while (data_index >= target_index + n)
+			{
+				this->_container[data_index] = this->_container[data_index - n];
+				data_index--;
+			}
+			while (target_index <= data_index)
+			{
+				this->_container[target_index] = val;
+				target_index++;
+			}
+			this->_container_size += n;
+		}
+		template	<class InputIterator,
+					 typename ft::disable_if<ft::is_integral<InputIterator>::value>::type>
+		void		insert(iterator position, InputIterator first, InputIterator last)
+		{
+			size_type n = last - first;
+			size_type target_index = 0;
+			while (iterator(this->_container + target_index) != position && target_index < this->_container_size)
+				target_index++;
+			for (size_type index = 0; index < n; index++)
+			{
+				iterator begin = this->begin();
+				this->insert(begin + target_index + index, *first);
+				first++;
+			}
+		}
+		iterator	erase(iterator position)
+		{
+			return this->erase(position + 1);
+		}
+		iterator	erase(iterator first, iterator last)
+		{
+			size_type n = last - first;
+			iterator target = first;
+			while (target + n != this->end())
+			{
+				*target = *(target + n);
+				target++;
+			}
+			this->_container_size -= n;
+			return first;
+		}
+		void		swap(vector &x)
+		{
+			vector tmp = *this;
+			*this = x;
+			x = tmp;
+		}
 		void		clear()
 		{
 			this->_container_size = 0;
