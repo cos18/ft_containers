@@ -1,6 +1,7 @@
 #include "vector.hpp"
 #include <iostream>
 #include <vector>
+#include <list>
 
 void vector_basic_test(ft::vector<int> &test)
 {
@@ -27,6 +28,9 @@ int main()
 
 	ft::vector<int> int_vector_val_ten(5, 10);
 	vector_basic_test(int_vector_val_ten);
+
+	ft::vector<int> test;
+	test.assign(int_vector_val_ten.begin(), int_vector_val_ten.end());
 
 	return 0;
 }

@@ -1,21 +1,12 @@
 namespace ft
 {
-	template <bool B, class T = void>
+	template <bool B>
 	struct enable_if {};
 
-	template <class T>
-	struct enable_if<true, T>
+	template <>
+	struct enable_if<true>
 	{
-		typedef T type;
-	};
-
-	template <bool B, class T = void>
-	struct disable_if {};
-
-	template <class T>
-	struct disable_if<false, T>
-	{
-		typedef T type;
+		typedef int type;
 	};
 
 	template <class T>

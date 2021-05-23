@@ -24,10 +24,12 @@ namespace ft
 
 	public:
 		// copy-constructible, copy-assignable and destructible
-		vec_iterator(const vec_iterator &src) {
+		vec_iterator(const vec_iterator &src)
+		{
 			this->_p = src._p;
 		}
-		vec_iterator &operator=(const vec_iterator &rhs) {
+		vec_iterator &operator=(const vec_iterator &rhs)
+		{
 			this->_p = rhs._p;
 			return *this;
 		}
@@ -36,14 +38,16 @@ namespace ft
 		}
 
 		// Can be incremented
-		vec_iterator operator++(int) { // 후위
+		vec_iterator operator++(int) // 후위
+		{
 			vec_iterator result(*this);
 			++(this->_p);
 			return (result);
 		}
-		vec_iterator &operator++() { // 전위
+		vec_iterator &operator++() // 전위
+		{
 			++(this->_p);
-			return (**this);
+			return (*this);
 		}
 
 		// Supports equality/inequality comparisons
@@ -141,6 +145,12 @@ namespace ft
 		template<typename cT>
 		vec_iterator(vec_iterator<cT> const &const_src): _p((cT*)const_src.getP()) {}
 	};
+
+	template<typename T>
+	vec_iterator<T> operator+(unsigned int lhs, vec_iterator<T>& rhs)
+	{
+		return (&(*rhs) + lhs);
+	}
 
 	template <class T>
 	class vec_rev_iterator: public vec_iterator<T>
