@@ -1,4 +1,6 @@
 container
+containers_test/*
+
 # Created by https://www.toptal.com/developers/gitignore/api/macos,vscode,c++
 # Edit at https://www.toptal.com/developers/gitignore?templates=macos,vscode,c++
 
