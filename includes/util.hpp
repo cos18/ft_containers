@@ -8,6 +8,16 @@ namespace ft
 		T val;
 		Node *prev;
 		Node *next;
+
+		Node() {}
+
+		template<typename cT>
+		Node(Node<cT> const &const_src)
+		{
+			this->val = const_cast<T>(const_src.val);
+			this->prev = const_src.prev;
+			this->next = const_src.next;
+		}
 	};
 
 	template <bool B>

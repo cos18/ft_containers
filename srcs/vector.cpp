@@ -6,8 +6,8 @@ void vector_basic_test(ft::vector<int> &test, std::vector<int> &std_vec)
 	std::cout << "========FT========\n";
 	std::cout << "size: " << test.size() << std::endl;
 	std::cout << "[value]" << std::endl;
-	ft::vec_iterator<int> ite = test.end();
-	for (ft::vec_iterator<int> it = test.begin(); it != ite; it++)
+	ft::vector<int>::iterator ite = test.end();
+	for (ft::vector<int>::iterator it = test.begin(); it != ite; it++)
 		std::cout << *it << " ";
 	std::cout << std::endl;
 
@@ -63,4 +63,9 @@ void vector_full_test()
 	assign_test.assign(int_vector_val_ten.begin(), int_vector_val_ten.end());
 	assign_test_std.assign(int_vector_val_ten_std.begin(), int_vector_val_ten_std.end());
 	vector_basic_test(assign_test, assign_test_std);
+
+	std::cout << "int_vector_val_ten.insert(int_vector_val_ten.begin() + 3, int_vector.begin(), int_vector.end())\n";
+	int_vector_val_ten.insert(int_vector_val_ten.begin() + 3, int_vector.begin(), int_vector.end());
+	int_vector_val_ten_std.insert(int_vector_val_ten_std.begin() + 3, int_vector_std.begin(), int_vector_std.end());
+	vector_basic_test(int_vector_val_ten, int_vector_val_ten_std);
 }

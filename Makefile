@@ -3,7 +3,7 @@ NAME		= container
 SRCDIR		= ./srcs/
 INCDIR		= ./includes/
 
-SRC			= main.cpp vector.cpp
+SRC			= main.cpp vector.cpp list.cpp
 SRCS	= $(addprefix $(SRCDIR), $(SRC))
 OBJS	= $(SRCS:.cpp=.o)
 

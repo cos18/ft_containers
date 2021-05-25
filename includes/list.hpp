@@ -19,9 +19,9 @@ namespace ft
 		typedef typename allocator_type::pointer			pointer;
 		typedef typename allocator_type::const_pointer		const_pointer;
 		typedef ft::list_iterator<T>						iterator;
-		typedef ft::list_iterator<const T>					const_iterator;
+		typedef ft::list_const_iterator<T>					const_iterator;
 		typedef ft::list_rev_iterator<T>					reverse_iterator;
-		typedef ft::list_rev_iterator<const T>				const_reverse_iterator;
+		typedef ft::list_rev_const_iterator<T>				const_reverse_iterator;
 		typedef typename allocator_type::difference_type	difference_type;
 		typedef typename allocator_type::size_type			size_type;
 		typedef ft::Node<value_type>*						node_type;
@@ -49,15 +49,15 @@ namespace ft
 
 	public:
 		// (constructor)
-        explicit list (const allocator_type& alloc = allocator_type()):
-        	_start_node(NULL),
-        	_end_node(NULL),
-        	_size(0),
-        	_allocator(alloc)
+		explicit list (const allocator_type& alloc = allocator_type()):
+			_start_node(NULL),
+			_end_node(NULL),
+			_size(0),
+			_allocator(alloc)
 		{
 			this->init_list();
 		}
-        explicit list (size_type n, const value_type& val = value_type(),
+		explicit list (size_type n, const value_type& val = value_type(),
 						const allocator_type& alloc = allocator_type()):
 			_start_node(NULL),
 			_end_node(NULL),
@@ -67,8 +67,8 @@ namespace ft
 			this->init_list();
 			this->assign(n, val);
 		}
-        template <class InputIterator>
-        list (InputIterator first, InputIterator last, const allocator_type& alloc = allocator_type(),
+		template <class InputIterator>
+		list (InputIterator first, InputIterator last, const allocator_type& alloc = allocator_type(),
 			  typename ft::enable_if<!ft::is_integral<InputIterator>::value>::type tmp = 0):
 			  _start_node(NULL),
 			  _end_node(NULL),
@@ -79,7 +79,7 @@ namespace ft
 			this->init_list();
 			this->assign(first, last);
 		}
-        list (const list& x)
+		list (const list& x)
 		{
 			*this = x;
 		}
@@ -222,6 +222,7 @@ namespace ft
 			pos_node->prev->next = target;
 			pos_node->prev = target;
 			(this->_size)++;
+			return iterator(target);
 		}
 		void		insert(iterator position, size_type n, const value_type &val)
 		{
@@ -266,10 +267,30 @@ namespace ft
 		}
 		void		resize(size_type n, value_type val = value_type())
 		{
-			this->reserve(n);
-			for (size_type index = this->_container_size; index < n; index++)
-				this->_container[index] = val;
-			this->_container_size = n;
+			if (n == this->_size)
+				return;
+			if (n > this->_size)
+			{
+				for (size_type tmp = this->_size; tmp < n; tmp++)
+					this->push_back(val);
+				return;
+			}
+			node_type target = this->_end_node;
+			size_type del_len = 0;
+			while (n + del_len == this->_size)
+			{
+				target = target->prev;
+				del_len++;
+			}
+			target->prev->next = this->_end_node;
+			this->_end_node->prev = target->prev;
+			while (target != this->_end_node)
+			{
+				node_type tmp = target->next;
+				delete target;
+				target = tmp;
+			}
+			this->_size -= del_len;
 		}
 		void		clear()
 		{
@@ -286,12 +307,63 @@ namespace ft
 		}
 
 		// Operations
-		void splice (iterator position, list& x);
-		void splice (iterator position, list& x, iterator i);
-		void splice (iterator position, list& x, iterator first, iterator last);
-		void remove (const value_type& val);
+		void splice(iterator position, list& x)
+		{
+			this->splice(position, x, x.begin(), x.end());
+		}
+		void splice(iterator position, list& x, iterator i)
+		{
+			iterator next = i;
+			next++;
+			this->splice(position, x, i, next);
+		}
+		void splice(iterator position, list& x, iterator first, iterator last)
+		{
+			size_type splice_size;
+			iterator tmp = first;
+			while (tmp != last)
+			{
+				tmp++;
+				splice_size++;
+			}
+
+			node_type pos_node = position.getP(), begin_node = x.begin().getP(), end_node = x.end().getP();
+			node_type before_node = begin_node->prev;
+
+			pos_node->prev->next = begin_node;
+			begin_node->prev = pos_node->prev;
+			pos_node->prev = end_node->prev;
+			end_node->prev->next = pos_node;
+
+			before_node->next = end_node;
+			end_node->prev = before_node;
+
+			this->_size += splice_size;
+			x._size -= splice_size;
+		}
+		void remove(const value_type& val)
+		{
+			iterator target = this->begin();
+			while (target != this->end())
+			{
+				iterator tmp = iterator(target.getP()->next);
+				if (*target == val)
+					this->erase(target);
+				target = tmp;
+			}
+		}
 		template <class Predicate>
-				void remove_if (Predicate pred);
+		void remove_if (Predicate pred)
+		{
+			iterator target = this->begin();
+			while (target != this->end())
+			{
+				iterator tmp = iterator(target.getP()->next);
+				if (pred(*target))
+					this->erase(target);
+				target = tmp;
+			}
+		}
 		void unique()
 		{
 
@@ -309,7 +381,14 @@ namespace ft
 				void sort (Compare comp);
 		void reverse()
 		{
-
+			node_type target = this->_start_node->next;
+			while (target != this->_end_node)
+			{
+				node_type tmp = target->next;
+				target->next = target->prev;
+				target->prev = tmp;
+				target = tmp;
+			}
 		}
 	};
 
