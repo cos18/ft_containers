@@ -20,7 +20,7 @@ namespace ft
 		typedef ft::vec_iterator<T>							iterator;
 		typedef ft::vec_iterator<const T>					const_iterator;
 		typedef ft::vec_rev_iterator<T>						reverse_iterator;
-		typedef ft::vec_rev_iterator<T>						const_reverse_iterator;
+		typedef ft::vec_rev_iterator<const T>				const_reverse_iterator;
 		typedef typename allocator_type::difference_type	difference_type;
 		typedef typename allocator_type::size_type			size_type;
 
@@ -324,7 +324,6 @@ namespace ft
 				return false;
 		}
 		return true;
-		
 	}
 	template <class T, class Alloc>
 	bool operator!=(const vector<T,Alloc> &lhs, const vector<T,Alloc> &rhs)

@@ -1,5 +1,15 @@
+#pragma once
+
 namespace ft
 {
+	template <typename T>
+	struct Node
+	{
+		T val;
+		Node *prev;
+		Node *next;
+	};
+
 	template <bool B>
 	struct enable_if {};
 

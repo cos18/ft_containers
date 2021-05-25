@@ -4,12 +4,8 @@
 
 namespace ft
 {
-	class iterator_traits
-	{
-	};
-
 	template <class T>
-	class vec_iterator: public ft::iterator_traits
+	class vec_iterator
 	{
 	public:
 		typedef std::ptrdiff_t	difference_type;
@@ -44,6 +40,7 @@ namespace ft
 			++(this->_p);
 			return (result);
 		}
+
 		vec_iterator &operator++() // 전위
 		{
 			++(this->_p);
@@ -61,19 +58,21 @@ namespace ft
 		}
 
 		// Can be dereferenced as an rvalue & lvalue
-		reference operator*()
+		virtual reference operator*()
 		{
 			return *(this->_p);
 		}
-		const_reference operator*() const
+		virtual const_reference operator*() const
 		{
 			return *(this->_p);
 		}
-		pointer operator->()
+
+		virtual pointer operator->()
 		{
 			return this->_p;
 		}
-		const_pointer operator->() const
+
+		virtual const_pointer operator->() const
 		{
 			return this->_p;
 		}
@@ -91,6 +90,7 @@ namespace ft
 			--(this->_p);
 			return (result);
 		}
+
 		vec_iterator &operator--()
 		{
 			--(this->_p);
@@ -156,7 +156,7 @@ namespace ft
 		}
 
 		// etc
-		vec_iterator(pointer p)
+		explicit vec_iterator(pointer p)
 		{
 			this->_p = p;
 		}
@@ -166,7 +166,7 @@ namespace ft
 		}
 		
 		template<typename cT>
-		vec_iterator(vec_iterator<cT> const &const_src): _p(const_cast<T*>(const_src.getP())) {}
+		explicit vec_iterator(vec_iterator<cT> const &const_src): _p(const_cast<T*>(const_src.getP())) {}
 	};
 
 	template<typename T>
@@ -254,6 +254,12 @@ namespace ft
 		vec_iterator<T> base() const
 		{
 			return this->_p;
+		}
+
+		template<typename cT>
+		vec_rev_iterator(vec_rev_iterator<cT> const &const_src)
+		{
+			this->_p = const_cast<T*>(const_src.getP());
 		}
 	};
 
