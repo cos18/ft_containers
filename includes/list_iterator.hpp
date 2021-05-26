@@ -6,6 +6,9 @@
 namespace ft
 {
 	template <class T>
+	class list_const_iterator;
+
+	template <class T>
 	class list_iterator
 	{
 	public:
@@ -13,6 +16,8 @@ namespace ft
 		typedef const T				const_value_type;
 		typedef ft::Node<T>*		pointer;
 		typedef const ft::Node<T>*	const_pointer;
+		typedef T*					value_pointer;
+		typedef const T*			const_value_pointer;
 		typedef T&					reference;
 		typedef const T&			const_reference;
 	
@@ -29,6 +34,10 @@ namespace ft
 		list_iterator(const list_iterator &src)
 		{
 			this->_p = src._p;
+		}
+		list_iterator(const list_const_iterator<T> &src)
+		{
+			this->_p = src.getP();
 		}
 		list_iterator &operator=(const list_iterator &rhs)
 		{
@@ -57,9 +66,17 @@ namespace ft
 		{
 			return (this->_p == rhs._p);
 		}
+		bool operator==(const list_const_iterator<T> &rhs) const
+		{
+			return (this->_p == rhs.getP());
+		}
 		bool operator!=(const list_iterator &rhs) const
 		{
 			return (this->_p != rhs._p);
+		}
+		bool operator!=(const list_const_iterator<T> &rhs) const
+		{
+			return (this->_p != rhs.getP());
 		}
 
 		// Can be dereferenced as an rvalue & lvalue
@@ -71,11 +88,11 @@ namespace ft
 		{
 			return this->_p->val;
 		}
-		value_type *operator->()
+		value_pointer operator->()
 		{
 			return &(this->_p->val);
 		}
-		const_value_type *operator->() const
+		const_value_pointer operator->() const
 		{
 			return &(this->_p->val);
 		}
@@ -93,7 +110,7 @@ namespace ft
 			return (*this);
 		}
 
-		pointer getP()
+		pointer getP() const
 		{
 			return this->_p;
 		}
@@ -107,6 +124,8 @@ namespace ft
 		typedef const T				const_value_type;
 		typedef ft::Node<T>*		pointer;
 		typedef const ft::Node<T>*	const_pointer;
+		typedef T*					value_pointer;
+		typedef const T*			const_value_pointer;
 		typedef T&					reference;
 		typedef const T&			const_reference;
 	
@@ -123,6 +142,10 @@ namespace ft
 		list_const_iterator(const list_const_iterator &src)
 		{
 			this->_p = src._p;
+		}
+		list_const_iterator(const list_iterator<T> &src)
+		{
+			this->_p = src.getP();
 		}
 		list_const_iterator &operator=(const list_const_iterator &rhs)
 		{
@@ -151,9 +174,17 @@ namespace ft
 		{
 			return (this->_p == rhs._p);
 		}
+		bool operator==(const list_iterator<T> &rhs) const
+		{
+			return (this->_p == rhs.getP());
+		}
 		bool operator!=(const list_const_iterator &rhs) const
 		{
 			return (this->_p != rhs._p);
+		}
+		bool operator!=(const list_iterator<T> &rhs) const
+		{
+			return (this->_p != rhs.getP());
 		}
 
 		// Can be dereferenced as an rvalue & lvalue
@@ -161,7 +192,7 @@ namespace ft
 		{
 			return this->_p->val;
 		}
-		const_value_type *operator->() const
+		const_value_pointer operator->() const
 		{
 			return &(this->_p->val);
 		}
@@ -178,6 +209,11 @@ namespace ft
 			this->_p = this->_p->prev;
 			return (*this);
 		}
+
+		pointer getP() const
+		{
+			return this->_p;
+		}
 	};
 
 	template <class T>
@@ -186,6 +222,8 @@ namespace ft
 	public:
 		using typename list_iterator<T>::value_type;
 		using typename list_iterator<T>::const_value_type;
+		using typename list_iterator<T>::value_pointer;
+		using typename list_iterator<T>::const_value_pointer;
 		using typename list_iterator<T>::pointer;
 		using typename list_iterator<T>::const_pointer;
 		using typename list_iterator<T>::reference;
@@ -203,7 +241,8 @@ namespace ft
 		reference operator*()
 		{
 			list_iterator<T> result(*this);
-			return (*(--result));
+			--result;
+			return (result.getP()->val);
 		}
 
 		list_rev_iterator operator++(int) // 후위
@@ -229,23 +268,20 @@ namespace ft
 			return (*this);
 		}
 
-		pointer operator->() {
-			list_rev_iterator<T> result(*this);
-			return (&*(--result));
-		}
-		const_pointer operator->() const {
-			list_rev_iterator<T> result(*this);
-			return (&*(--result));
-		}
-		list_rev_iterator<T> base() const
+		value_pointer operator->()
 		{
-			return this->_p;
+			list_rev_iterator<T> result(*this);
+			--result;
+			return (&(result.getP()->val));
 		}
-
-		template<typename cT>
-		list_rev_iterator(list_rev_iterator<cT> const &const_src)
+		const_value_pointer operator->() const
 		{
-			this->_p = const_cast<pointer>(const_src.getP());
+			list_rev_iterator<T> result(*this);
+			return (&(result.getP()->val));
+		}
+		list_iterator<T> base() const
+		{
+			return list_iterator<T>(this->_p);
 		}
 	};
 
@@ -255,14 +291,21 @@ namespace ft
 	public:
 		using typename list_const_iterator<T>::value_type;
 		using typename list_const_iterator<T>::const_value_type;
+		using typename list_const_iterator<T>::value_pointer;
+		using typename list_const_iterator<T>::const_value_pointer;
 		using typename list_const_iterator<T>::pointer;
 		using typename list_const_iterator<T>::const_pointer;
 		using typename list_const_iterator<T>::reference;
 		using typename list_const_iterator<T>::const_reference;
 
 		list_rev_const_iterator(): list_const_iterator<T>() {}
+		list_rev_const_iterator(const list_iterator<T> &src): list_const_iterator<T>(src) {}
 		list_rev_const_iterator(const list_const_iterator<T> &src): list_const_iterator<T>(src) {}
 		list_rev_const_iterator(const list_rev_const_iterator &src): list_const_iterator<T>(src._p) {}
+		list_rev_const_iterator(const list_rev_iterator<T> &src)
+		{
+			this->_p = src.getP();
+		}
 
 		list_rev_const_iterator &operator=(const list_rev_const_iterator &rhs)
 		{
@@ -271,8 +314,9 @@ namespace ft
 		}
 		const_reference operator*()
 		{
-			list_rev_const_iterator<T> result(*this);
-			return (*(--result));
+			list_const_iterator<T> result(*this);
+			--result;
+			return (result.getP()->val);
 		}
 
 		list_rev_const_iterator operator++(int) // 후위
@@ -298,9 +342,15 @@ namespace ft
 			return (*this);
 		}
 
-		const_pointer operator->() const {
+		value_pointer operator->()
+		{
+			list_rev_const_iterator<T> result(*this);
+			return (&(result.getP()->val));
+		}
+		const_value_pointer operator->() const
+		{
 			list_rev_const_iterator result(*this);
-			return (&*(--result));
+			return (&(result.getP()->val));
 		}
 		list_const_iterator<T> base() const
 		{

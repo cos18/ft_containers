@@ -46,6 +46,18 @@ namespace ft
 			this->_end_node = init_node(value_type(), this->_start_node, NULL);
 			this->_start_node->next = this->_end_node;
 		}
+		void swap_node(node_type n)
+		{
+			if (n == NULL || n == this->_start_node || n->next == NULL || n->next == this->_end_node)
+				return;
+			node_type m = n->next, n_before = n->prev, m_after = n->next->next;
+			n_before->next = m;
+			m_after->prev = n;
+			n->prev = m;
+			n->next = m_after;
+			m->prev = n_before;
+			m->next = n;
+		}
 
 	public:
 		// (constructor)
@@ -79,8 +91,12 @@ namespace ft
 			this->init_list();
 			this->assign(first, last);
 		}
-		list (const list& x)
+		list (const list& x):
+			_start_node(NULL),
+			_end_node(NULL),
+			_size(0)
 		{
+			this->init_list();
 			*this = x;
 		}
 
@@ -241,8 +257,10 @@ namespace ft
 			node_type pos_node = position.getP();
 			pos_node->next->prev = pos_node->prev;
 			pos_node->prev->next = pos_node->next;
+			node_type result = pos_node->next;
 			delete pos_node;
 			(this->_size)--;
+			return iterator(result);
 		}
 		iterator	erase(iterator first, iterator last)
 		{
@@ -258,12 +276,19 @@ namespace ft
 				n++;
 			}
 			this->_size -= n;
+			return iterator(last_node);
 		}
 		void		swap(list &x)
 		{
-			list tmp = *this;
-			*this = x;
-			x = tmp;
+			node_type tmp = this->_start_node;
+			this->_start_node = x._start_node;
+			x._start_node = tmp;
+			tmp = this->_end_node;
+			this->_end_node = x._end_node;
+			x._end_node = tmp;
+			size_type size_tmp = this->_size;
+			this->_size = x._size;
+			x._size = size_tmp;
 		}
 		void		resize(size_type n, value_type val = value_type())
 		{
@@ -275,22 +300,11 @@ namespace ft
 					this->push_back(val);
 				return;
 			}
-			node_type target = this->_end_node;
-			size_type del_len = 0;
-			while (n + del_len == this->_size)
-			{
-				target = target->prev;
-				del_len++;
-			}
-			target->prev->next = this->_end_node;
-			this->_end_node->prev = target->prev;
-			while (target != this->_end_node)
-			{
-				node_type tmp = target->next;
-				delete target;
-				target = tmp;
-			}
-			this->_size -= del_len;
+			iterator target = this->end();
+			size_type del_len = this->_size - n;
+			while (del_len--)
+				target--;
+			this->erase(target, this->end());
 		}
 		void		clear()
 		{
@@ -319,7 +333,7 @@ namespace ft
 		}
 		void splice(iterator position, list& x, iterator first, iterator last)
 		{
-			size_type splice_size;
+			size_type splice_size = 0;
 			iterator tmp = first;
 			while (tmp != last)
 			{
@@ -327,7 +341,7 @@ namespace ft
 				splice_size++;
 			}
 
-			node_type pos_node = position.getP(), begin_node = x.begin().getP(), end_node = x.end().getP();
+			node_type pos_node = position.getP(), begin_node = first.getP(), end_node = last.getP();
 			node_type before_node = begin_node->prev;
 
 			pos_node->prev->next = begin_node;
@@ -366,41 +380,164 @@ namespace ft
 		}
 		void unique()
 		{
-
+			iterator target = this->begin();
+			while (target != this->end())
+			{
+				while (true)
+				{
+					iterator next = target;
+					next++;
+					if (next == this->end() || *target != *next)
+						break;
+					this->erase(next);
+				}
+				target++;
+			}
 		}
 		template <class BinaryPredicate>
-				void unique(BinaryPredicate binary_pred);
-		void merge(list &x);
-		template <class Compare>
-				void merge(list &x, Compare comp);
-		void sort()
+		void unique(BinaryPredicate binary_pred)
 		{
-
+			iterator target = this->begin();
+			while (target != this->end())
+			{
+				while (true)
+				{
+					iterator next = target;
+					next++;
+					if (next == this->end() || !binary_pred(*target, *next))
+						break;
+					this->erase(next);
+				}
+				target++;
+			}
+		}
+		void merge(list &x)
+		{
+			if (this->begin() == x.begin())
+				return;
+			iterator target = this->begin();
+			while (target != this->end())
+			{
+				iterator x_target = x.begin();
+				while (((*x_target) < (*target)) && x_target != x.end())
+				{
+					this->splice(target, x, x_target);
+					x_target = x.begin();
+				}
+				target++;
+			}
+			if (x.empty())
+				return;
+			this->splice(this->end(), x, x.begin(), x.end());
 		}
 		template <class Compare>
-				void sort (Compare comp);
+		void merge(list &x, Compare comp)
+		{
+			if (this->begin() == x.begin())
+				return;
+			iterator target = this->begin();
+			while (target != this->end())
+			{
+				iterator x_target = x.begin();
+				while (comp(*x_target, *target) && x_target != x.end())
+				{
+					this->splice(target, x, x_target);
+					x_target = x.begin();
+				}
+				target++;
+			}
+			if (x.empty())
+				return;
+			this->splice(this->end(), x, x.begin(), x.end());
+		}
+		void sort()
+		{
+			if (this->empty())
+				return;
+			size_type n = this->_size - 1;
+			while (n > 0)
+			{
+				node_type target = this->_start_node->next;
+				for (size_type i = 0; i < n; i++)
+				{
+					if (target->next->val < target->val)
+						swap_node(target);
+					else
+						target = target->next;
+				}
+				n--;
+			}
+		}
+		template <class Compare>
+		void sort (Compare comp)
+		{
+			if (this->empty())
+				return;
+			size_type n = this->_size - 1;
+			while (n > 0)
+			{
+				node_type target = this->_start_node->next;
+				for (size_type i = 0; i < n; i++)
+				{
+					if (comp(target->next->val, target->val))
+						swap_node(target);
+					else
+						target = target->next;
+				}
+				n--;
+			}
+		}
 		void reverse()
 		{
-			node_type target = this->_start_node->next;
-			while (target != this->_end_node)
+			if (this->empty())
+				return;
+			node_type target = this->_start_node;
+			while (target != NULL)
 			{
 				node_type tmp = target->next;
 				target->next = target->prev;
 				target->prev = tmp;
 				target = tmp;
 			}
+			target = this->_start_node;
+			this->_start_node = this->_end_node;
+			this->_end_node = target;
 		}
 	};
 
 	template <class T, class Alloc>
-	bool operator==(const list<T,Alloc> &lhs, const list<T,Alloc> &rhs);
+	bool operator==(const list<T,Alloc> &lhs, const list<T,Alloc> &rhs)
+	{
+		if (lhs.size() != rhs.size())
+			return false;
+		list_iterator<T> lhs_it = lhs.begin(), rhs_it = rhs.begin();
+		while (lhs_it != lhs.end())
+		{
+			if (*lhs_it != *rhs_it)
+				return false;
+			lhs_it++;
+			rhs_it++;
+		}
+		return true;
+	}
 	template <class T, class Alloc>
 	bool operator!=(const list<T,Alloc> &lhs, const list<T,Alloc> &rhs)
 	{
 		return (!(lhs == rhs));
 	}
 	template <class T, class Alloc>
-	bool operator<(const list<T,Alloc> &lhs, const list<T,Alloc> &rhs);
+	bool operator<(const list<T,Alloc> &lhs, const list<T,Alloc> &rhs)
+	{
+		list_iterator<T> lhs_it = lhs.begin(), rhs_it = rhs.begin();
+		while (lhs_it != lhs.end() && rhs_it != rhs.end())
+		{
+			if (*lhs_it != *rhs_it)
+				return (*lhs_it < *rhs_it);
+			lhs_it++;
+			rhs_it++;
+		}
+		return (lhs.size() < rhs.size());
+	}
 	template <class T, class Alloc>
 	bool operator>(const list<T,Alloc> &lhs, const list<T,Alloc> &rhs)
 	{
