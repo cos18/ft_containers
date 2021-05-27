@@ -2,7 +2,6 @@
 
 #include <iostream>
 #include <memory>
-#include <list>
 #include "list_iterator.hpp"
 #include "util.hpp"
 

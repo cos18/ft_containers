@@ -1,4 +1,5 @@
 #include "test.hpp"
+#include "stack.hpp"
 
 int main()
 {
