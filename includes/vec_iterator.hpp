@@ -54,7 +54,7 @@ namespace ft
 		}
 		bool operator!=(const vec_iterator &rhs) const
 		{
-			return (this->_p != rhs._p);
+			return (!this->operator==(rhs));
 		}
 
 		// Can be dereferenced as an rvalue & lvalue
@@ -120,17 +120,17 @@ namespace ft
 		{
 			return (this->_p < rhs._p);
 		}
-		bool operator<=(const vec_iterator &rhs) const
-		{
-			return (this->_p <= rhs._p);
-		}
 		bool operator>(const vec_iterator &rhs) const
 		{
-			return (this->_p > rhs._p);
+			return (rhs < *this);
+		}
+		bool operator<=(const vec_iterator &rhs) const
+		{
+			return (!(*this > rhs));
 		}
 		bool operator>=(const vec_iterator &rhs) const
 		{
-			return (this->_p >= rhs._p);
+			return (!(*this < rhs));
 		}
 
 		// Supports compound assignment operations += and -=
@@ -166,13 +166,13 @@ namespace ft
 		}
 		
 		template<typename cT>
-		explicit vec_iterator(vec_iterator<cT> const &const_src): _p(const_cast<T*>(const_src.getP())) {}
+		vec_iterator(vec_iterator<cT> const &const_src): _p(const_cast<T*>(const_src.getP())) {}
 	};
 
 	template<typename T>
 	vec_iterator<T> operator+(unsigned int lhs, vec_iterator<T>& rhs)
 	{
-		return (&(*rhs) + lhs);
+		return (rhs + lhs);
 	}
 
 	template <class T>
@@ -189,6 +189,7 @@ namespace ft
 		vec_rev_iterator(): vec_iterator<T>() {}
 		vec_rev_iterator(const vec_iterator<T> &src): vec_iterator<T>(src) {}
 		vec_rev_iterator(const vec_rev_iterator &src): vec_iterator<T>(src._p) {}
+		vec_rev_iterator(const pointer p): vec_iterator<T>(p) {}
 
 		vec_rev_iterator &operator=(const vec_rev_iterator &rhs)
 		{
@@ -233,6 +234,10 @@ namespace ft
 			this->_p -= n;
 			return (*this);
 		}
+		difference_type operator-(const vec_rev_iterator &rhs) const
+		{
+			return (rhs._p - this->_p);
+		}
 		vec_rev_iterator operator-(difference_type n)
 		{
 			return vec_rev_iterator(this->_p + n);
@@ -241,6 +246,24 @@ namespace ft
 		{
 			this->_p += n;
 			return (*this);
+		}
+
+		// Supports inequality comparisons (<, >, <= and >=) between iterators
+		bool operator<(const vec_rev_iterator &rhs) const
+		{
+			return (this->_p > rhs._p);
+		}
+		bool operator>(const vec_rev_iterator &rhs) const
+		{
+			return (rhs < *this);
+		}
+		bool operator<=(const vec_rev_iterator &rhs) const
+		{
+			return (!(*this > rhs));
+		}
+		bool operator>=(const vec_rev_iterator &rhs) const
+		{
+			return (!(*this < rhs));
 		}
 
 		pointer operator->() {
@@ -253,7 +276,16 @@ namespace ft
 		}
 		vec_iterator<T> base() const
 		{
-			return this->_p;
+			return vec_iterator<T>(this->_p);
+		}
+
+		reference operator[](size_t n)
+		{
+			return *(this->_p - n - 1);
+		}
+		const_reference operator[](size_t n) const
+		{
+			return *(this->_p - n - 1);
 		}
 
 		template<typename cT>
@@ -263,5 +295,9 @@ namespace ft
 		}
 	};
 
-	
+	template<typename T>
+	vec_rev_iterator<T> operator+(unsigned int lhs, vec_rev_iterator<T>& rhs)
+	{
+		return (rhs + lhs);
+	}
 }

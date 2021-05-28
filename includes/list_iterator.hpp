@@ -270,14 +270,11 @@ namespace ft
 
 		value_pointer operator->()
 		{
-			list_rev_iterator<T> result(*this);
-			--result;
-			return (&(result.getP()->val));
+			return (&(this->_p->prev->val));
 		}
 		const_value_pointer operator->() const
 		{
-			list_rev_iterator<T> result(*this);
-			return (&(result.getP()->val));
+			return (&(this->_p->prev->val));
 		}
 		list_iterator<T> base() const
 		{
@@ -342,15 +339,9 @@ namespace ft
 			return (*this);
 		}
 
-		value_pointer operator->()
-		{
-			list_rev_const_iterator<T> result(*this);
-			return (&(result.getP()->val));
-		}
 		const_value_pointer operator->() const
 		{
-			list_rev_const_iterator result(*this);
-			return (&(result.getP()->val));
+			return (&(this->_p->prev->val));
 		}
 		list_const_iterator<T> base() const
 		{

@@ -303,9 +303,10 @@ namespace ft
 		}
 		void		swap(vector &x)
 		{
-			vector tmp = *this;
-			*this = x;
-			x = tmp;
+			std::swap(this->_container, x._container);
+			std::swap(this->_container_size, x._container_size);
+			std::swap(this->_container_length, x._container_length);
+			std::swap(this->_allocator, x._allocator);
 		}
 		void		clear()
 		{
