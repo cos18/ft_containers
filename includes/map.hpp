@@ -9,24 +9,22 @@ namespace ft
 	template < class Key,
 			   class T,
 			   class Compare = std::less<Key>,
-			   class Allocator = std::allocator< std::pair<const Key, T> >
+			   class Allocator = std::allocator< ft::pair<const Key, T> >
 			   >
 	class map
 	{
 	public:
 		typedef Key											key_type;
 		typedef T											mapped_type;
-		typedef std::pair<const key_type, mapped_type>		value_type;
+		typedef ft::pair<const key_type, mapped_type>		value_type;
 		typedef Compare										key_compare;
 		class												value_compare
 		{
-			friend class map;
-
 		protected:
 			Compare comp;
-			value_compare (Compare c) : comp(c) {}  // constructed with map's comparison object
 
 		public:
+			value_compare (Compare c) : comp(c) {}
 			typedef bool									result_type;
 			typedef value_type								first_argument_type;
 			typedef value_type								second_argument_type;
@@ -49,7 +47,7 @@ namespace ft
 
 		typedef typename allocator_type::difference_type	difference_type;
 		typedef typename allocator_type::size_type			size_type;
-		typedef Mapnode<Key, T, Compare>*					node_type;
+		typedef AVLNode<Key, T, Compare>*					node_type;
 
 	private:
 		node_type		_container;
@@ -57,13 +55,11 @@ namespace ft
 		allocator_type	_allocator;
 		size_type		_size;
 
-		node_type init_node(value_type val, node_type parent, node_type left, node_type right)
+		node_type init_node(value_type val, node_type parent)
 		{
-			node_type result = this->_allocator.allocate(1);
-			result->val = val;
+			node_type result = new AVLNode<Key, T, Compare>;
+			result->val = new value_type(val);
 			result->parent = parent;
-			result->left = left;
-			result->right = right;
 			return result;
 		}
 
@@ -75,7 +71,8 @@ namespace ft
 				deallocate_node_recur(target->left);
 			if (target->right)
 				deallocate_node_recur(target->right);
-			this->_allocator.deallocate(target, 1);
+			delete target->val;
+			delete target;
 		}
 
 	public:
@@ -87,7 +84,7 @@ namespace ft
 					 _allocator(alloc),
 					 _size(0)
 		{
-			this->_container = init_node(value_type(), NULL, NULL, NULL);
+			this->_container = init_node(value_type(), NULL);
 		}
 		template <class InputIterator>
 		map(InputIterator first, InputIterator last,
@@ -100,11 +97,16 @@ namespace ft
 			_size(0)
 		{
 			(void)tmp;
-			this->_container = init_node(value_type(), NULL, NULL, NULL);
+			this->_container = init_node(value_type(), NULL);
 			this->insert(first, last);
 		}
-		map(const map& x)
+		map(const map& x):
+			_container(NULL),
+			_key_cmp(key_compare()),
+			_allocator(allocator_type()),
+			_size(0)
 		{
+			this->_container = init_node(value_type(), NULL);
 			*this = x;
 		}
 
@@ -112,36 +114,54 @@ namespace ft
 		~map()
 		{
 			this->clear();
-			this->_allocator.deallocate(this->_container, 1);
+			delete this->_container->val;
+			delete this->_container;
 		}
 
 		map& operator=(const map& x)
 		{
 			this->clear();
 			this->insert(x.begin(), x.end());
+			return *this;
 		}
 
 		// Iterators
 		iterator begin()
 		{
+			if (this->empty())
+				return iterator(NULL, this->_container, true);
 			return iterator(this->_container->first(), this->_container);
 		}
 		const_iterator begin() const
 		{
+			if (this->empty())
+				return iterator(NULL, this->_container, true);
 			return const_iterator(this->_container->first(), this->_container);
 		}
 		iterator end()
 		{
-			return iterator(NULL, this->_container, 1);
+			return iterator(NULL, this->_container, true);
 		}
 		const_iterator end() const
 		{
-			return const_iterator(NULL, this->_container, 1);
+			return const_iterator(NULL, this->_container, true);
 		}
-		reverse_iterator rbegin();
-		const_reverse_iterator rbegin() const;
-		reverse_iterator rend();
-		const_reverse_iterator rend() const;
+		reverse_iterator rbegin()
+		{
+			return reverse_iterator(this->end());
+		}
+		const_reverse_iterator rbegin() const
+		{
+			return const_reverse_iterator(this->end());
+		}
+		reverse_iterator rend()
+		{
+			return reverse_iterator(this->begin());
+		}
+		const_reverse_iterator rend() const
+		{
+			return const_reverse_iterator(this->begin());
+		}
 
 		// Capacity
 		bool empty() const
@@ -154,46 +174,50 @@ namespace ft
 		}
 		size_type max_size() const
 		{
-			return (std::numeric_limits<size_type>::max() / sizeof(value_type));
+			return (std::numeric_limits<difference_type>::max() / (sizeof(AVLNode<Key, T, Compare>) / 2 ?: 1));
 		}
 
 		// Element access
-		mapped_type& operator[](const key_type& k);
+		mapped_type& operator[](const key_type& k)
+		{
+			return (*((this->insert(ft::make_pair(k, mapped_type()))).first)).second;
+		}
 
 		// Modifiers
-		std::pair<iterator,bool> insert(const value_type& val)
+		ft::pair<iterator,bool> insert(const value_type& val)
 		{
 			if (this->_size == 0)
 			{
-				this->_container->val = val;
+				delete this->_container->val;
+				this->_container->val = new value_type(val);
 				this->_size += 1;
-				return;
+				return ft::pair<iterator,bool>(iterator(this->_container, this->_container), true);
 			}
 			node_type target = this->_container;
 			while (true)
 			{
-				if (this->_key_cmp(val.first, target->val.first) == false &&
-					this->_key_cmp(target->val.first, val.first) == false)
-					return std::pair<iterator,bool>(iterator(target, this->_container), false);
-				if (this->_key_cmp(val.first, target->val.first))
+				if (this->_key_cmp(val.first, target->val->first) == false &&
+					this->_key_cmp(target->val->first, val.first) == false)
+					return ft::pair<iterator,bool>(iterator(target, this->_container), false);
+				if (this->_key_cmp(val.first, target->val->first))
 				{
 					if (target->left)
 					{
 						target = target->left;
 						continue;
 					}
-					target->left = init_node(val, target, NULL, NULL);
+					target->left = init_node(val, target);
 					this->_size += 1;
-					return std::pair<iterator,bool>(iterator(target->left, this->_container), false);
+					return ft::pair<iterator,bool>(iterator(target->left, this->_container), true);
 				}
 				if (target->right)
 				{
 					target = target->right;
 					continue;
 				}
-				target->right = init_node(val, target, NULL, NULL);
+				target->right = init_node(val, target);
 				this->_size += 1;
-				return std::pair<iterator,bool>(iterator(target->right, this->_container), false);
+				return ft::pair<iterator,bool>(iterator(target->right, this->_container), true);
 			}
 		}
 		iterator insert(iterator position, const value_type& val)
@@ -227,17 +251,19 @@ namespace ft
 			deallocate_node_recur(this->_container->right);
 			this->_container->left = NULL;
 			this->_container->right = NULL;
+			delete this->_container->val;
+			this->_container->val = new value_type;
 			this->_size = 0;
 		}
 
 		// Observers
 		key_compare key_comp() const
 		{
-			return (Compare());
+			return (key_compare());
 		}
 		value_compare value_comp() const
 		{
-			return (value_compare());
+			return (value_compare(key_compare()));
 		}
 
 		// Operations
@@ -248,10 +274,10 @@ namespace ft
 			node_type target = this->_container;
 			while (true)
 			{
-				if (this->_key_cmp(k, target->val.first) == false &&
-					this->_key_cmp(target->val.first, k) == false)
-					return iterator(target);
-				target = (this->_key_cmp(target->val.first, k) ? target->left : target->right);
+				if (this->_key_cmp(k, target->val->first) == false &&
+					this->_key_cmp(target->val->first, k) == false)
+					return iterator(target, this->_container);
+				target = (this->_key_cmp(target->val->first, k) ? target->left : target->right);
 				if (!target)
 					return this->end();
 			}
@@ -263,10 +289,10 @@ namespace ft
 			node_type target = this->_container;
 			while (true)
 			{
-				if (this->_key_cmp(k, target->val.first) == false &&
-					this->_key_cmp(target->val.first, k) == false)
-					return iterator(target);
-				target = (this->_key_cmp(target->val.first, k) ? target->left : target->right);
+				if (this->_key_cmp(k, target->val->first) == false &&
+					this->_key_cmp(target->val->first, k) == false)
+					return iterator(target, this->_container);
+				target = (this->_key_cmp(target->val->first, k) ? target->left : target->right);
 				if (!target)
 					return this->end();
 			}
@@ -280,7 +306,7 @@ namespace ft
 		const_iterator lower_bound(const key_type& k) const;
 		iterator upper_bound(const key_type& k);
 		const_iterator upper_bound(const key_type& k) const;
-		std::pair<const_iterator,const_iterator> equal_range(const key_type& k) const;
-		std::pair<iterator,iterator> equal_range(const key_type& k);
+		ft::pair<const_iterator,const_iterator> equal_range(const key_type& k) const;
+		ft::pair<iterator,iterator> equal_range(const key_type& k);
 	};
 }

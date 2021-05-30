@@ -7,6 +7,6 @@ int main()
 {
 	vector_full_test();
 	list_full_test();
-	ft::map<int, int> test;
+	map_full_test();
 	return 0;
 }
