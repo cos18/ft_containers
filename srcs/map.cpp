@@ -1,5 +1,6 @@
 #include "map.hpp"
 #include "list.hpp"
+#include <string>
 #include <list>
 
 #define T1 int
@@ -43,7 +44,25 @@ void copy_construct()
 	*/
 }
 
+void find_test()
+{
+	ft::map<int, int> test;
+
+	test[10] = 1;
+	test[4] = 2;
+	test[23] = 3;
+
+	ft::map<int, int>::iterator it = test.begin(), ite = test.end();
+	while (it != ite)
+	{
+		std::cout << it->first << " " << it->second << std::endl;
+		it++;
+	}
+	test.find(23)->second = 4;
+}
+
 void map_full_test()
 {
 	copy_construct();
+	find_test();
 }

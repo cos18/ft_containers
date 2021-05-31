@@ -180,6 +180,7 @@ namespace ft
 		// Element access
 		mapped_type& operator[](const key_type& k)
 		{
+			// Reference: http://www.cplusplus.com/reference/map/map/operator[]/
 			return (*((this->insert(ft::make_pair(k, mapped_type()))).first)).second;
 		}
 
@@ -277,7 +278,7 @@ namespace ft
 				if (this->_key_cmp(k, target->val->first) == false &&
 					this->_key_cmp(target->val->first, k) == false)
 					return iterator(target, this->_container);
-				target = (this->_key_cmp(target->val->first, k) ? target->left : target->right);
+				target = (this->_key_cmp(target->val->first, k) ? target->right : target->left);
 				if (!target)
 					return this->end();
 			}
@@ -292,7 +293,7 @@ namespace ft
 				if (this->_key_cmp(k, target->val->first) == false &&
 					this->_key_cmp(target->val->first, k) == false)
 					return iterator(target, this->_container);
-				target = (this->_key_cmp(target->val->first, k) ? target->left : target->right);
+				target = (this->_key_cmp(target->val->first, k) ? target->right : target->left);
 				if (!target)
 					return this->end();
 			}
@@ -302,11 +303,107 @@ namespace ft
 			iterator it = this->find(k);
 			return (it == this->end() ? 0 : 1);
 		}
-		iterator lower_bound(const key_type& k);
-		const_iterator lower_bound(const key_type& k) const;
-		iterator upper_bound(const key_type& k);
-		const_iterator upper_bound(const key_type& k) const;
-		ft::pair<const_iterator,const_iterator> equal_range(const key_type& k) const;
-		ft::pair<iterator,iterator> equal_range(const key_type& k);
+		iterator lower_bound(const key_type& k)
+		{
+			iterator it = this->begin(), ite = this->end();
+			while (it != ite)
+			{
+				if (!this->_key_cmp(it->first, k))
+					break;
+				++it;
+			}
+			return (it);
+		}
+		const_iterator lower_bound(const key_type& k) const
+		{
+			iterator it = this->begin(), ite = this->end();
+			while (it != ite)
+			{
+				if (!this->_key_cmp(it->first, k))
+					break;
+				++it;
+			}
+			return (it);
+		}
+		iterator upper_bound(const key_type& k)
+		{
+			iterator it = this->begin(), ite = this->end();
+			while (it != ite)
+			{
+				if (this->_key_cmp(k, it->first))
+					break;
+				++it;
+			}
+			return (it);
+		}
+		const_iterator upper_bound(const key_type& k) const
+		{
+			iterator it = this->begin(), ite = this->end();
+			while (it != ite)
+			{
+				if (this->_key_cmp(k, it->first))
+					break;
+				++it;
+			}
+			return (it);
+		}
+		ft::pair<const_iterator,const_iterator> equal_range(const key_type& k) const
+		{
+			ft::pair<iterator, iterator> result;
+			result.first = this->lower_bound(k);
+			result.second = this->upper_bound(k);
+			return result;
+		}
+		ft::pair<iterator,iterator> equal_range(const key_type& k)
+		{
+			ft::pair<iterator, iterator> result;
+			result.first = this->lower_bound(k);
+			result.second = this->upper_bound(k);
+			return result;
+		}
+
+		friend
+		bool operator==(const map& lhs,
+						const map& rhs)
+		{
+			if (lhs.size() != rhs.size())
+				return false;
+			return ft::check_AVL_equal(lhs._container, rhs._container);
+		}
 	};
+
+	template< class Key, class T, class Compare, class Alloc >
+	bool operator!=(const ft::map<Key,T,Compare,Alloc>& lhs,
+					const ft::map<Key,T,Compare,Alloc>& rhs)
+	{
+		return (!(lhs == rhs));
+	}
+
+	template< class Key, class T, class Compare, class Alloc >
+	bool operator<( const ft::map<Key,T,Compare,Alloc>& lhs,
+					const ft::map<Key,T,Compare,Alloc>& rhs )
+	{
+		return ft::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+	}
+
+	template< class Key, class T, class Compare, class Alloc >
+	bool operator>( const ft::map<Key,T,Compare,Alloc>& lhs,
+					const ft::map<Key,T,Compare,Alloc>& rhs )
+	{
+		return (rhs < lhs);
+	}
+
+	template< class Key, class T, class Compare, class Alloc >
+	bool operator<=(const ft::map<Key,T,Compare,Alloc>& lhs,
+					const ft::map<Key,T,Compare,Alloc>& rhs )
+	{
+		return (!(rhs < lhs));
+	}
+
+	template< class Key, class T, class Compare, class Alloc >
+	bool operator>=(const ft::map<Key,T,Compare,Alloc>& lhs,
+					const ft::map<Key,T,Compare,Alloc>& rhs )
+	{
+		return (!(lhs < rhs));
+	}
 }

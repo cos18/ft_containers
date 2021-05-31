@@ -81,10 +81,11 @@ namespace ft
 		AVLNode *parent;
 		AVLNode *left;
 		AVLNode *right;
+		size_t height;
 
-		AVLNode(): val(NULL), parent(NULL), left(NULL), right(NULL) {}
-		AVLNode(ft::pair<Key, T> *v): val(v), parent(NULL), left(NULL), right(NULL) {}
-		AVLNode(ft::pair<Key, T> *v, AVLNode *p, AVLNode *l = NULL, AVLNode *r = NULL): val(v), parent(p), left(l), right(r) {}
+		AVLNode(): val(NULL), parent(NULL), left(NULL), right(NULL), height(1) {}
+		AVLNode(ft::pair<Key, T> *v): val(v), parent(NULL), left(NULL), right(NULL), height(1) {}
+		AVLNode(ft::pair<Key, T> *v, AVLNode *p, AVLNode *l = NULL, AVLNode *r = NULL, size_t h = 0): val(v), parent(p), left(l), right(r), height(h) {}
 
 		AVLNode *first()
 		{
@@ -145,8 +146,38 @@ namespace ft
 			std::swap(this->parent, src.parent);
 			std::swap(this->left, src.left);
 			std::swap(this->right, src.right);
+			std::swap(this->height, src.height);
 		}
 	};
+
+	template <typename Key, typename T, class Compare>
+	bool check_AVL_equal(AVLNode<Key, T, Compare> *x, AVLNode<Key, T, Compare> *y)
+	{
+		if (x == NULL && y == NULL)
+			return true;
+		if (x == NULL || y == NULL)
+			return false;
+		if (Compare()(x->val->first, y->val->first) ||
+			Compare()(y->val->first, x->val->first) ||
+			x->val->second != y->val->second)
+			return false;
+		return check_AVL_equal(x->left, y->left) && check_AVL_equal(x->right, y->right);
+	}
+
+	template <class It1, class It2>
+	bool	lexicographical_compare(It1 begin1, It1 end1, It2 begin2, It2 end2)
+	{
+		while (begin1 != end1 && begin2 != end2 && *begin1 == *begin2)
+		{
+			++begin1;
+			++begin2;
+		}
+		if (begin1 == end1)
+			return (begin2 != end2);
+		if (begin2 == end2)
+			return (false);
+		return (*begin1 < *begin2);
+	}
 
 	template <bool B>
 	struct enable_if {};
