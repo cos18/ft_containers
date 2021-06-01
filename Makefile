@@ -10,7 +10,7 @@ OBJS	= $(SRCS:.cpp=.o)
 INCDIR	= ./includes/
 
 CC		= clang++
-CCFLAG	= -std=c++98 -g -fsanitize=address -Wall -Wextra -Werror
+CCFLAG	= -std=c++98 -g -Wall -Wextra -Werror
 RM		= rm -f
 
 %.o:		%.cpp

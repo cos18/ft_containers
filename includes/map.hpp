@@ -60,6 +60,7 @@ namespace ft
 			node_type result = new AVLNode<Key, T, Compare>;
 			result->val = new value_type(val);
 			result->parent = parent;
+			result->height = 1;
 			return result;
 		}
 
@@ -129,22 +130,22 @@ namespace ft
 		iterator begin()
 		{
 			if (this->empty())
-				return iterator(NULL, this->_container, true);
+				return iterator(this->_container, this->_container);
 			return iterator(this->_container->first(), this->_container);
 		}
 		const_iterator begin() const
 		{
 			if (this->empty())
-				return iterator(NULL, this->_container, true);
+				return iterator(this->_container, this->_container);
 			return const_iterator(this->_container->first(), this->_container);
 		}
 		iterator end()
 		{
-			return iterator(NULL, this->_container, true);
+			return iterator(this->_container, this->_container);
 		}
 		const_iterator end() const
 		{
-			return const_iterator(NULL, this->_container, true);
+			return const_iterator(this->_container, this->_container);
 		}
 		reverse_iterator rbegin()
 		{
@@ -189,12 +190,12 @@ namespace ft
 		{
 			if (this->_size == 0)
 			{
-				delete this->_container->val;
-				this->_container->val = new value_type(val);
+				this->_container->left = init_node(val, NULL);
+				this->_container->right = this->_container->left;
 				this->_size += 1;
-				return ft::pair<iterator,bool>(iterator(this->_container, this->_container), true);
+				return ft::pair<iterator,bool>(iterator(this->_container->left, this->_container), true);
 			}
-			node_type target = this->_container;
+			node_type target = this->_container->left;
 			while (true)
 			{
 				if (this->_key_cmp(val.first, target->val->first) == false &&
@@ -208,8 +209,8 @@ namespace ft
 						continue;
 					}
 					target->left = init_node(val, target);
-					this->_size += 1;
-					return ft::pair<iterator,bool>(iterator(target->left, this->_container), true);
+					target = target->left;
+					break;
 				}
 				if (target->right)
 				{
@@ -217,9 +218,13 @@ namespace ft
 					continue;
 				}
 				target->right = init_node(val, target);
-				this->_size += 1;
-				return ft::pair<iterator,bool>(iterator(target->right, this->_container), true);
+				target = target->right;
+				break;
 			}
+			target->parent->update_height(true);
+			target->parent->check_rotate(this->_container);
+			this->_size += 1;
+			return ft::pair<iterator,bool>(iterator(target, this->_container), true);
 		}
 		iterator insert(iterator position, const value_type& val)
 		{
@@ -237,9 +242,66 @@ namespace ft
 				++first;
 			}
 		}
-		void erase(iterator position);
-		size_type erase(const key_type& k);
-		void erase(iterator first, iterator last);
+		void erase(iterator position)
+		{
+			node_type target = position.getP();
+			if (!(target->left) && !(target->right))
+			{
+				if (this->_container->left == target)
+					this->_container->left = this->_container->right = NULL;
+				else if (target->parent->left == target)
+					target->parent->left = NULL;
+				else
+					target->parent->right = NULL;
+				delete target->val;
+				delete target;
+				this->_size -= 1;
+				return;
+			}
+			if (!(target->left) || !(target->right))
+			{
+				node_type target_change = (target->left == NULL ? target->right : target->left);
+				if (this->_container->left == target)
+				{
+					this->_container->left = this->_container->right = target_change;
+					target_change->parent = NULL;
+				}
+				else if (target->parent->left == target)
+				{
+					target->parent->left = target_change;
+					target_change->parent = target->parent;
+				}
+				else
+				{
+					target->parent->right = target_change;
+					target_change->parent = target->parent;
+				}
+				delete target->val;
+				delete target;
+				target_change->update_height(true);
+				target_change->check_rotate(this->_container);
+				this->_size -= 1;
+				return;
+			}
+			node_type target_change = target->left;
+			while (target->right)
+				target = target->right;
+			target->swap_position(target_change);
+			this->erase(iterator(target, this->_container));
+		}
+		size_type erase(const key_type& k)
+		{
+			iterator target = this->find(k);
+			if (target == this->end())
+				return 0;
+			this->erase(target);
+			return 1;
+		}
+		void erase(iterator first, iterator last)
+		{
+			while (first != last)
+				this->erase(first++);
+		}
 		void swap(map& x)
 		{
 			std::swap(this->_allocator, x._allocator);
@@ -249,11 +311,8 @@ namespace ft
 		void clear()
 		{
 			deallocate_node_recur(this->_container->left);
-			deallocate_node_recur(this->_container->right);
 			this->_container->left = NULL;
 			this->_container->right = NULL;
-			delete this->_container->val;
-			this->_container->val = new value_type;
 			this->_size = 0;
 		}
 
@@ -272,7 +331,7 @@ namespace ft
 		{
 			if (this->empty())
 				return this->end();
-			node_type target = this->_container;
+			node_type target = this->_container->left;
 			while (true)
 			{
 				if (this->_key_cmp(k, target->val->first) == false &&
@@ -287,7 +346,7 @@ namespace ft
 		{
 			if (this->empty())
 				return this->end();
-			node_type target = this->_container;
+			node_type target = this->_container->left;
 			while (true)
 			{
 				if (this->_key_cmp(k, target->val->first) == false &&
@@ -368,7 +427,7 @@ namespace ft
 		{
 			if (lhs.size() != rhs.size())
 				return false;
-			return ft::check_AVL_equal(lhs._container, rhs._container);
+			return ft::check_AVL_equal(lhs._container->left, rhs._container->left);
 		}
 	};
 

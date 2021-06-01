@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 
 namespace ft
 {
@@ -85,7 +86,7 @@ namespace ft
 
 		AVLNode(): val(NULL), parent(NULL), left(NULL), right(NULL), height(1) {}
 		AVLNode(ft::pair<Key, T> *v): val(v), parent(NULL), left(NULL), right(NULL), height(1) {}
-		AVLNode(ft::pair<Key, T> *v, AVLNode *p, AVLNode *l = NULL, AVLNode *r = NULL, size_t h = 0): val(v), parent(p), left(l), right(r), height(h) {}
+		AVLNode(ft::pair<Key, T> *v, AVLNode *p, AVLNode *l = NULL, AVLNode *r = NULL, size_t h = 1): val(v), parent(p), left(l), right(r), height(h) {}
 
 		AVLNode *first()
 		{
@@ -141,12 +142,118 @@ namespace ft
 			return target;
 		}
 
-		void swap_position(AVLNode &src)
+		void swap_position(AVLNode *src)
 		{
-			std::swap(this->parent, src.parent);
-			std::swap(this->left, src.left);
-			std::swap(this->right, src.right);
-			std::swap(this->height, src.height);
+			std::swap(this->parent, src->parent);
+			std::swap(this->left, src->left);
+			std::swap(this->right, src->right);
+			std::swap(this->height, src->height);
+		}
+
+		void reset_position(AVLNode *parent, AVLNode *left, AVLNode *right)
+		{
+			this->parent = parent;
+			this->left = left;
+			this->right = right;
+		}
+
+		void update_height(bool with_parent)
+		{
+			this->height = (this->left == NULL ? 1 : this->left->height + 1);
+			if (this->right)
+				this->height = (this->height > this->right->height + 1 ? this->height : this->right->height + 1);
+			if (with_parent && this->parent)
+				this->parent->update_height(with_parent);
+		}
+
+		int check_rotate(AVLNode *root)
+		{
+			int diff = (this->left ? this->left->height : 0);
+			diff -= (this->right ? this->right->height : 0);
+			if (-2 < diff && diff < 2)
+				return (this->parent ? this->parent->check_rotate(root) : 0);
+			AVLNode *target_right = NULL, *target_left = NULL, *target_root = NULL, *ll = NULL, *lr = NULL, *rl = NULL, *rr = NULL;
+			switch (diff)
+			{
+				case 2:
+				{
+					target_right = this;
+					rr = this->right;
+					int diff_left = this->left->left ? this->left->left->height : 0;
+					diff_left -= (this->left->right ? this->left->right->height : 0);
+					switch (diff_left)
+					{
+						case 1:
+							target_root = target_right->left;
+							target_left = target_root->left;
+							lr = target_left->right;
+							break;
+						case -1:
+							target_left = target_right->left;
+							target_root = target_left->right;
+							lr = target_root->left;
+							break;
+						default:
+							break;
+					}
+					ll = target_left->left;
+					rl = target_root->right;
+					break;
+				}
+				case -2:
+				{
+					target_left = this;
+					ll = this->left;
+					int diff_right = this->right->left ? this->right->left->height : 0;
+					diff_right -= (this->right->right ? this->right->right->height : 0);
+					switch (diff_right)
+					{
+						case 1:
+							target_right = target_left->right;
+							target_root = target_right->left;
+							rl = target_root->right;
+							break;
+						case -1:
+							target_root = target_left->right;
+							target_right = target_root->right;
+							rl = target_right->left;
+							break;
+						default:
+							break;
+					}
+					lr = target_root->left;
+					rr = target_right->right;
+					break;
+				}
+				default:
+					break;
+			}
+			target_root->reset_position(this->parent, target_left, target_right);
+			if (!this->parent)
+			{
+				root->left = target_root;
+				root->right = target_root;
+			}
+			else
+			{
+				if (this->parent->left == this)
+					this->parent->left = target_root;
+				else
+					this->parent->right = target_root;
+			}
+			target_left->reset_position(target_root, ll, lr);
+			target_right->reset_position(target_root, rl, rr);
+			if (ll)
+				ll->parent = target_left;
+			if (lr)
+				lr->parent = target_left;
+			if (rl)
+				rl->parent = target_right;
+			if (rr)
+				rr->parent = target_right;
+			target_left->update_height(false);
+			target_right->update_height(true);
+			return (target_root->parent ? target_root->parent->check_rotate(root) : 0);
 		}
 	};
 

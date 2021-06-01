@@ -24,7 +24,6 @@ namespace ft
 	protected:
 		node_type	_p;
 		node_type	_root;
-		bool		_is_end;
 
 	private:
 		class OutOfRangeException : public std::exception
@@ -36,35 +35,34 @@ namespace ft
 		};
 
 	public:
-		map_iterator(): _p(NULL), _root(NULL), _is_end(false) {}
-		map_iterator(node_type p, node_type root, bool is_end = false): _p(p), _root(root), _is_end(is_end) {}
-		map_iterator(const map_iterator &src): _p(src._p), _root(src._root), _is_end(src._is_end) {}
-		map_iterator(const map_const_iterator<Key, T, Compare> &src): _p(src.getP()), _root(src.getRoot()), _is_end(src.getIsEnd()) {}
+		map_iterator(): _p(NULL), _root(NULL) {}
+		map_iterator(node_type p, node_type root): _p(p), _root(root) {}
+		map_iterator(const map_iterator &src): _p(src._p), _root(src._root) {}
+		map_iterator(const map_const_iterator<Key, T, Compare> &src): _p(src.getP()), _root(src.getRoot()) {}
 		virtual ~map_iterator() {}
 
 		map_iterator &operator=(const map_iterator &rhs)
 		{
 			this->_p = rhs._p;
 			this->_root = rhs._root;
-			this->_is_end = rhs._is_end;
 			return *this;
 		}
 
 		bool operator==(const map_iterator &rhs)
 		{
-			return (this->_p == rhs._p && this->_is_end == rhs._is_end);
+			return (this->_p == rhs._p);
 		}
 		bool operator==(const map_const_iterator<Key, T, Compare> &rhs)
 		{
-			return (this->_p == rhs.getP() && this->_is_end == rhs.getIsEnd());
+			return (this->_p == rhs.getP());
 		}
 		bool operator!=(const map_iterator &rhs)
 		{
-			return (this->_p != rhs._p || this->_is_end != rhs._is_end);
+			return (this->_p != rhs._p);
 		}
 		bool operator!=(const map_const_iterator<Key, T, Compare> &rhs)
 		{
-			return (this->_p != rhs.getP() || this->_is_end != rhs.getIsEnd());
+			return (this->_p != rhs.getP());
 		}
 
 		reference operator*()
@@ -86,31 +84,28 @@ namespace ft
 
 		map_iterator operator++(int) // 후위
 		{
-			if (this->_is_end)
+			if (this->_p == this->_root)
 				throw OutOfRangeException();
 			map_iterator result(*this);
 			this->_p = this->_p->next();
 			if (!(this->_p))
-				this->_is_end = true;
+				this->_p = this->_root;
 			return result;
 		}
 		map_iterator &operator++() // 전위
 		{
-			if (this->_is_end)
+			if (this->_p == this->_root)
 				throw OutOfRangeException();
 			this->_p = this->_p->next();
 			if (!(this->_p))
-				this->_is_end = true;
+				this->_p = this->_root;
 			return (*this);
 		}
 		map_iterator operator--(int) // 후위
 		{
 			map_iterator result(*this);
-			if (this->_is_end)
-			{
+			if (this->_p == this->_root)
 				this->_p = this->_root->last();
-				this->_is_end = false;
-			}
 			else
 			{
 				this->_p = this->_p->prev();
@@ -121,11 +116,8 @@ namespace ft
 		}
 		map_iterator &operator--() // 전위
 		{
-			if (this->_is_end)
-			{
+			if (this->_p == this->_root)
 				this->_p = this->_root->last();
-				this->_is_end = false;
-			}
 			else
 			{
 				this->_p = this->_p->prev();
@@ -142,10 +134,6 @@ namespace ft
 		const node_type getRoot() const
 		{
 			return this->_root;
-		}
-		int getIsEnd() const
-		{
-			return this->_is_end;
 		}
 	};
 
@@ -166,7 +154,6 @@ namespace ft
 	protected:
 		node_type	_p;
 		node_type	_root;
-		bool		_is_end;
 
 	private:
 		class OutOfRangeException : public std::exception
@@ -178,35 +165,34 @@ namespace ft
 		};
 
 	public:
-		map_const_iterator(): _p(NULL), _root(NULL), _is_end(false) {}
-		map_const_iterator(node_type p, node_type root, bool is_end = false): _p(p), _root(root), _is_end(is_end) {}
-		map_const_iterator(const map_const_iterator &src): _p(src._p), _root(src._root), _is_end(src._is_end) {};
-		map_const_iterator(const map_iterator<Key, T, Compare> &src): _p(src.getP()), _root(src.getRoot()), _is_end(src.getIsEnd()) {}
+		map_const_iterator(): _p(NULL), _root(NULL) {}
+		map_const_iterator(node_type p, node_type root): _p(p), _root(root) {}
+		map_const_iterator(const map_const_iterator &src): _p(src._p), _root(src._root) {};
+		map_const_iterator(const map_iterator<Key, T, Compare> &src): _p(src.getP()), _root(src.getRoot()) {}
 		virtual ~map_const_iterator() {}
 
 		map_const_iterator &operator=(const map_const_iterator &rhs)
 		{
 			this->_p = rhs._p;
 			this->_root = rhs._root;
-			this->_is_end = rhs._is_end;
 			return *this;
 		}
 
 		bool operator==(const map_iterator<Key, T, Compare> &rhs)
 		{
-			return (this->_p == rhs.getP() && this->_is_end == rhs.getIsEnd());
+			return (this->_p == rhs.getP());
 		}
 		bool operator==(const map_const_iterator &rhs)
 		{
-			return (this->_p == rhs._p && this->_is_end == rhs._is_end);
+			return (this->_p == rhs._p);
 		}
 		bool operator!=(const map_iterator<Key, T, Compare> &rhs)
 		{
-			return (this->_p != rhs.getP() || this->_is_end != rhs.getIsEnd());
+			return (this->_p != rhs.getP());
 		}
 		bool operator!=(const map_const_iterator &rhs)
 		{
-			return (this->_p != rhs._p || this->_is_end != rhs._is_end);
+			return (this->_p != rhs._p);
 		}
 
 		const_reference operator*() const
@@ -220,31 +206,28 @@ namespace ft
 
 		map_const_iterator operator++(int) // 후위
 		{
-			if (this->_is_end)
+			if (this->_p == this->_root)
 				throw OutOfRangeException();
 			map_const_iterator result(*this);
 			this->_p = this->_p->next();
 			if (!(this->_p))
-				this->_is_end = true;
+				this->_p = this->_root;
 			return result;
 		}
 		map_const_iterator &operator++() // 전위
 		{
-			if (this->_is_end)
+			if (this->_p == this->_root)
 				throw OutOfRangeException();
 			this->_p = this->_p->next();
 			if (!(this->_p))
-				this->_is_end = true;
+				this->_p = this->_root;
 			return (*this);
 		}
 		map_const_iterator operator--(int) // 후위
 		{
 			map_const_iterator result(*this);
-			if (this->_is_end)
-			{
+			if (this->_p == this->_root)
 				this->_p = this->_root->last();
-				this->_is_end = false;
-			}
 			else
 			{
 				this->_p = this->_p->prev();
@@ -255,11 +238,8 @@ namespace ft
 		}
 		map_const_iterator &operator--() // 전위
 		{
-			if (this->_is_end)
-			{
+			if (this->_p == this->_root)
 				this->_p = this->_root->last();
-				this->_is_end = false;
-			}
 			else
 			{
 				this->_p = this->_p->prev();
@@ -276,10 +256,6 @@ namespace ft
 		const node_type getRoot() const
 		{
 			return this->_root;
-		}
-		int getIsEnd() const
-		{
-			return this->_is_end;
 		}
 	};
 
@@ -309,69 +285,65 @@ namespace ft
 	public:
 		map_rev_iterator(): map_iterator<Key, T, Compare>() {}
 		map_rev_iterator(const map_iterator<Key, T, Compare> &src): map_iterator<Key, T, Compare>(src) {}
-		map_rev_iterator(const map_rev_iterator &src): map_iterator<Key, T, Compare>(src._p, src._root, src._is_end) {}
+		map_rev_iterator(const map_rev_iterator &src): map_iterator<Key, T, Compare>(src._p, src._root) {}
 		virtual ~map_rev_iterator() {}
 
 		map_rev_iterator &operator=(const map_rev_iterator &rhs)
 		{
 			this->_p = rhs._p;
 			this->_root = rhs._root;
-			this->_is_end = rhs._is_end;
 			return *this;
 		}
 
 		reference operator*()
 		{
-			if (this->_is_end)
+			if (this->_p == this->_root)
 				return *(this->_root->last()->val);
 			return *(this->_p->prev()->val);
 		}
 		const_reference operator*() const
 		{
-			if (this->_is_end)
+			if (this->_p == this->_root)
 				return *(this->_root->last()->val);
 			return *(this->_p->prev()->val);
 		}
 		pointer operator->()
 		{
-			if (this->_is_end)
+			if (this->_p == this->_root)
 				return this->_root->last()->val;
 			return this->_p->prev()->val;
 		}
 		const_pointer operator->() const
 		{
-			if (this->_is_end)
+			if (this->_p == this->_root)
 				return this->_root->last()->val;
 			return this->_p->prev()->val;
 		}
 
 		map_rev_iterator operator--(int) // 후위
 		{
-			if (this->_is_end)
+			if (this->_p == this->_root)
 				throw OutOfRangeException();
 			map_rev_iterator result(*this);
 			this->_p = this->_p->next();
 			if (!(this->_p))
-				this->_is_end = true;
+				this->_p = this->_root;
 			return result;
 		}
 		map_rev_iterator &operator--() // 전위
 		{
-			if (this->_is_end)
+			if (this->_p == this->_root)
 				throw OutOfRangeException();
 			this->_p = this->_p->next();
 			if (!(this->_p))
-				this->_is_end = true;
+				this->_p = this->_root;
 			return (*this);
 		}
 		map_rev_iterator operator++(int) // 후위
 		{
 			map_rev_iterator result(*this);
-			if (this->_is_end)
-			{
+			if (this->_p == this->_root)
 				this->_p = this->_root->last();
-				this->_is_end = false;
-			}
 			else
 			{
 				this->_p = this->_p->prev();
@@ -382,11 +354,8 @@ namespace ft
 		}
 		map_rev_iterator &operator++() // 전위
 		{
-			if (this->_is_end)
-			{
+			if (this->_p == this->_root)
 				this->_p = this->_root->last();
-				this->_is_end = false;
-			}
 			else
 			{
 				this->_p = this->_p->prev();
@@ -404,14 +373,10 @@ namespace ft
 		{
 			return this->_root;
 		}
-		int getIsEnd() const
-		{
-			return this->_is_end;
-		}
 
 		map_iterator<Key, T, Compare> base() const
 		{
-			return map_iterator<Key, T, Compare>(this->_p, this->_root, this->_is_end);
+			return map_iterator<Key, T, Compare>(this->_p, this->_root);
 		}
 	};
 
@@ -441,57 +406,53 @@ namespace ft
 	public:
 		map_rev_const_iterator(): map_const_iterator<Key, T, Compare>() {}
 		map_rev_const_iterator(const map_const_iterator<Key, T, Compare> &src): map_const_iterator<Key, T, Compare>(src) {}
-		map_rev_const_iterator(const map_rev_const_iterator &src): map_const_iterator<Key, T, Compare>(src._p, src._root, src._is_end) {}
+		map_rev_const_iterator(const map_rev_const_iterator &src): map_const_iterator<Key, T, Compare>(src._p, src._root) {}
 		virtual ~map_rev_const_iterator() {}
 
 		map_rev_const_iterator &operator=(const map_rev_const_iterator &rhs)
 		{
 			this->_p = rhs._p;
 			this->_root = rhs._root;
-			this->_is_end = rhs._is_end;
 			return *this;
 		}
 
 		const_reference operator*() const
 		{
-			if (this->_is_end)
+			if (this->_p == this->_root)
 				return *(this->_root->last()->val);
 			return *(this->_p->prev()->val);
 		}
 		const_pointer operator->() const
 		{
-			if (this->_is_end)
+			if (this->_p == this->_root)
 				return this->_root->last()->val;
 			return this->_p->prev()->val;
 		}
 
 		map_rev_const_iterator operator--(int) // 후위
 		{
-			if (this->_is_end)
+			if (this->_p == this->_root)
 				throw OutOfRangeException();
 			map_rev_const_iterator result(*this);
 			this->_p = this->_p->next();
 			if (!(this->_p))
-				this->_is_end = true;
+				this->_p = this->_root;
 			return result;
 		}
 		map_rev_const_iterator &operator--() // 전위
 		{
-			if (this->_is_end)
+			if (this->_p == this->_root)
 				throw OutOfRangeException();
 			this->_p = this->_p->next();
 			if (!(this->_p))
-				this->_is_end = true;
+				this->_p = this->_root;
 			return (*this);
 		}
 		map_rev_const_iterator operator++(int) // 후위
 		{
 			map_rev_const_iterator result(*this);
-			if (this->_is_end)
-			{
+			if (this->_p == this->_root)
 				this->_p = this->_root->last();
-				this->_is_end = false;
-			}
 			else
 			{
 				this->_p = this->_p->prev();
@@ -502,11 +463,8 @@ namespace ft
 		}
 		map_rev_const_iterator &operator++() // 전위
 		{
-			if (this->_is_end)
-			{
+			if (this->_p == this->_root)
 				this->_p = this->_root->last();
-				this->_is_end = false;
-			}
 			else
 			{
 				this->_p = this->_p->prev();
@@ -524,14 +482,10 @@ namespace ft
 		{
 			return this->_root;
 		}
-		int getIsEnd() const
-		{
-			return this->_is_end;
-		}
 
 		map_const_iterator<Key, T, Compare> base() const
 		{
-			return map_const_iterator<Key, T, Compare>(this->_p, this->_root, this->_is_end);
+			return map_const_iterator<Key, T, Compare>(this->_p, this->_root);
 		}
 	};
 }
