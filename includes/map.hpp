@@ -3,6 +3,7 @@
 #include <memory>
 #include "map_iterator.hpp"
 #include "util.hpp"
+#include <stdio.h>
 
 namespace ft
 {
@@ -57,10 +58,7 @@ namespace ft
 
 		node_type init_node(value_type val, node_type parent)
 		{
-			node_type result = new AVLNode<Key, T, Compare>;
-			result->val = new value_type(val);
-			result->parent = parent;
-			result->height = 1;
+			node_type result = new AVLNode<Key, T, Compare>(val, parent);
 			return result;
 		}
 
@@ -72,7 +70,6 @@ namespace ft
 				deallocate_node_recur(target->left);
 			if (target->right)
 				deallocate_node_recur(target->right);
-			delete target->val;
 			delete target;
 		}
 
@@ -115,7 +112,6 @@ namespace ft
 		~map()
 		{
 			this->clear();
-			delete this->_container->val;
 			delete this->_container;
 		}
 
@@ -244,49 +240,51 @@ namespace ft
 		}
 		void erase(iterator position)
 		{
-			node_type target = position.getP();
-			if (!(target->left) && !(target->right))
-			{
-				if (this->_container->left == target)
-					this->_container->left = this->_container->right = NULL;
-				else if (target->parent->left == target)
-					target->parent->left = NULL;
-				else
-					target->parent->right = NULL;
-				delete target->val;
-				delete target;
-				this->_size -= 1;
-				return;
-			}
+			node_type target = position.getP(), target_change = NULL;
 			if (!(target->left) || !(target->right))
 			{
-				node_type target_change = (target->left == NULL ? target->right : target->left);
-				if (this->_container->left == target)
+				if (!(target->left) && !(target->right))
 				{
-					this->_container->left = this->_container->right = target_change;
-					target_change->parent = NULL;
-				}
-				else if (target->parent->left == target)
-				{
-					target->parent->left = target_change;
-					target_change->parent = target->parent;
+					if (this->_container->left == target)
+						this->_container->left = this->_container->right = NULL;
+					else if (target->parent->left == target)
+						target->parent->left = NULL;
+					else
+						target->parent->right = NULL;
+					target_change = target->parent;
 				}
 				else
 				{
-					target->parent->right = target_change;
-					target_change->parent = target->parent;
+					target_change = (target->left == NULL ? target->right : target->left);
+					if (this->_container->left == target)
+					{
+						this->_container->left = this->_container->right = target_change;
+						target_change->parent = NULL;
+					}
+					else if (target->parent->left == target)
+					{
+						target->parent->left = target_change;
+						target_change->parent = target->parent;
+					}
+					else
+					{
+						target->parent->right = target_change;
+						target_change->parent = target->parent;
+					}
 				}
-				delete target->val;
 				delete target;
-				target_change->update_height(true);
-				target_change->check_rotate(this->_container);
+				if (target_change)
+				{
+					target_change->update_height(true);
+					target_change->check_rotate(this->_container);
+				}
 				this->_size -= 1;
 				return;
 			}
-			node_type target_change = target->left;
-			while (target->right)
-				target = target->right;
-			target->swap_position(target_change);
+			target_change = target->left;
+			while (target_change->right)
+				target_change = target_change->right;
+			target->swap_position(target_change, this->_container);
 			this->erase(iterator(target, this->_container));
 		}
 		size_type erase(const key_type& k)

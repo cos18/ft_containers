@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <stdio.h>
 
 namespace ft
 {
@@ -85,8 +86,19 @@ namespace ft
 		size_t height;
 
 		AVLNode(): val(NULL), parent(NULL), left(NULL), right(NULL), height(1) {}
-		AVLNode(ft::pair<Key, T> *v): val(v), parent(NULL), left(NULL), right(NULL), height(1) {}
-		AVLNode(ft::pair<Key, T> *v, AVLNode *p, AVLNode *l = NULL, AVLNode *r = NULL, size_t h = 1): val(v), parent(p), left(l), right(r), height(h) {}
+		AVLNode(ft::pair<Key, T> v): parent(NULL), left(NULL), right(NULL), height(1)
+		{
+			this->val = new ft::pair<const Key, T>(v.first, v.second);
+		}
+		AVLNode(ft::pair<Key, T> v, AVLNode *p, AVLNode *l = NULL, AVLNode *r = NULL, size_t h = 1): parent(p), left(l), right(r), height(h)
+		{
+			this->val = new ft::pair<const Key, T>(v.first, v.second);
+		}
+
+		~AVLNode()
+		{
+			delete this->val;
+		}
 
 		AVLNode *first()
 		{
@@ -142,12 +154,70 @@ namespace ft
 			return target;
 		}
 
-		void swap_position(AVLNode *src)
+		void swap_position(AVLNode *src, AVLNode *root)
 		{
-			std::swap(this->parent, src->parent);
-			std::swap(this->left, src->left);
-			std::swap(this->right, src->right);
-			std::swap(this->height, src->height);
+			if (this->parent && this->parent != src)
+			{
+				if (this->parent->left == this)
+					this->parent->left = src;
+				else
+					this->parent->right = src;
+			}
+			else if (!(this->parent))
+				root->left = root->right = src;
+			if (src->parent && src->parent != this)
+			{
+				if (src->parent->left == src)
+					src->parent->left = this;
+				else
+					src->parent->right = this;
+			}
+			else if (!(src->parent))
+				src->left = src->right = this;
+			if (this->left && this->left != src)
+				this->left->parent = src;
+			if (this->right && this->right != src)
+				this->right->parent = src;
+			if (src->left && src->left != this)
+				src->left->parent = this;
+			if (src->right && src->right != this)
+				src->right->parent = this;
+			if (this->parent == src)
+			{
+				this->parent = src->parent;
+				src->parent = this;
+			}
+			else if (src->parent == this)
+			{
+				src->parent = this->parent;
+				this->parent = src;
+			}
+			else
+				std::swap(this->parent, src->parent);
+			if (this->left == src)
+			{
+				this->left = src->left;
+				src->left = this;
+			}
+			else if (src->left == this)
+			{
+				src->left = this->left;
+				this->left = src;
+			}
+			else
+				std::swap(this->left, src->left);
+			if (this->right == src)
+			{
+				this->right = src->right;
+				src->right = this;
+			}
+			else if (src->right == this)
+			{
+				src->right = this->right;
+				this->right = src;
+			}
+			else
+				std::swap(this->right, src->right);
 		}
 
 		void reset_position(AVLNode *parent, AVLNode *left, AVLNode *right)
@@ -162,7 +232,7 @@ namespace ft
 			this->height = (this->left == NULL ? 1 : this->left->height + 1);
 			if (this->right)
 				this->height = (this->height > this->right->height + 1 ? this->height : this->right->height + 1);
-			if (with_parent && this->parent)
+			if (with_parent && this->parent != NULL)
 				this->parent->update_height(with_parent);
 		}
 
@@ -183,17 +253,16 @@ namespace ft
 					diff_left -= (this->left->right ? this->left->right->height : 0);
 					switch (diff_left)
 					{
-						case 1:
-							target_root = target_right->left;
-							target_left = target_root->left;
-							lr = target_left->right;
-							break;
 						case -1:
 							target_left = target_right->left;
 							target_root = target_left->right;
 							lr = target_root->left;
 							break;
+						case 1:
 						default:
+							target_root = target_right->left;
+							target_left = target_root->left;
+							lr = target_left->right;
 							break;
 					}
 					ll = target_left->left;
@@ -214,11 +283,10 @@ namespace ft
 							rl = target_root->right;
 							break;
 						case -1:
+						default:
 							target_root = target_left->right;
 							target_right = target_root->right;
 							rl = target_right->left;
-							break;
-						default:
 							break;
 					}
 					lr = target_root->left;

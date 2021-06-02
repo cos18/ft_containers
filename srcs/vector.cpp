@@ -47,6 +47,7 @@ void vector_basic_test(ft::vector<int> &test, std::vector<int> &std_vec)
 
 void vector_full_test()
 {
+	std::cout << "=========V E C T O R=========" << std::endl << std::endl;
 	std::cout << "int_vector(5)\n";
 	ft::vector<int> int_vector(5);
 	std::vector<int> int_vector_std(5);
