@@ -3,14 +3,14 @@ NAME		= container
 SRCDIR		= ./srcs/
 INCDIR		= ./includes/
 
-SRC			= main.cpp vector.cpp list.cpp map.cpp
+SRC			= main.cpp vector.cpp list.cpp map.cpp queue.cpp stack.cpp
 SRCS	= $(addprefix $(SRCDIR), $(SRC))
 OBJS	= $(SRCS:.cpp=.o)
 
 INCDIR	= ./includes/
 
 CC		= clang++
-CCFLAG	= -std=c++98 -g -fsanitize=address -Wall -Wextra -Werror
+CCFLAG	= -std=c++98 -Wall -Wextra -Werror
 RM		= rm -f
 
 %.o:		%.cpp
